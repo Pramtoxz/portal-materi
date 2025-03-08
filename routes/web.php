@@ -8,7 +8,7 @@ use App\Http\Controllers\MateriController;
 
 // Redirect root ke login
 Route::get('/', function () {
-    return Redirect::route('login');
+    return Redirect::route('logout');
 });
 
 // Route untuk pengguna yang sudah login
