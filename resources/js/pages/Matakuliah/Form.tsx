@@ -1,4 +1,5 @@
 import { useForm } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -199,7 +200,7 @@ export default function MatakuliahForm({
                     <Button
                         type="button"
                         variant="outline"
-                        onClick={() => window.history.back()}
+                        onClick={() => router.visit(route('matakuliah.index'))}
                         className="gap-1"
                     >
                         Batal
