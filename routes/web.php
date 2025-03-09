@@ -5,10 +5,22 @@ use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use App\Http\Controllers\MatakuliahController;
 use App\Http\Controllers\MateriController;
+use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Storage;
 
 // Redirect root ke login
 Route::get('/', function () {
     return Redirect::route('login');
+});
+
+// Route untuk download (hanya untuk mahasiswa dan akademis)
+Route::middleware(['auth', 'role:mahasiswa,akademis,dosen'])->group(function () {
+    Route::get('materi/{materi}/preview', [MateriController::class, 'preview'])
+        ->name('materi.preview');
+    Route::get('download/materi/{materi}', [MateriController::class, 'download'])
+        ->name('download.materi');
+    Route::get('materi/{materi}/preview-pdf', [MateriController::class, 'previewPdf'])
+        ->name('materi.preview-pdf');
 });
 
 // Route untuk pengguna yang sudah login
@@ -32,7 +44,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['akademis'])->group(function () {
         Route::resource('matakuliah', MatakuliahController::class);
         Route::resource('materi', MateriController::class);
+        Route::resource('user', UserController::class);
     });
+
+    // Route CRUD (hanya untuk dosen dan akademis)
+    Route::middleware(['auth', 'role:dosen,akademis'])->group(function () {
+        Route::resource('materi', MateriController::class);
+        Route::get('materi/matakuliah/{kodematakuliah}', [MateriController::class, 'show'])
+            ->name('materi.matakuliah');
+    });
+
+    Route::get('/materi/{materi}/view', [MateriController::class, 'view'])->name('view.materi');
 });
 
 // Include file route lainnya

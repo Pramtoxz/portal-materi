@@ -3,7 +3,6 @@ import { Head } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { MatakuliahProps } from '@/types';
 import { useEffect } from 'react';
 import {
     Select,
@@ -19,47 +18,52 @@ import {
     DialogTitle,
     DialogDescription
 } from '@/components/ui/dialog';
-import { BookOpen, BookText, Clock, Calendar } from "lucide-react";
-import { useState } from "react";
+import { User, AtSign, Key, UserCog } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+interface UserProps {
+    id: number;
+    name: string;
+    username: string;
+    email: string;
+    role: string;
+}
 
 interface DialogFormProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    matakuliah?: MatakuliahProps | null;
+    user?: UserProps | null;
     onSuccess?: () => void;
 }
 
-export default function DialogForm({ open, onOpenChange, matakuliah = null, onSuccess }: DialogFormProps) {
+export default function DialogForm({ open, onOpenChange, user = null, onSuccess }: DialogFormProps) {
     const { data, setData, post, put, processing, errors, reset } = useForm({
-        kodematakuliah: '',
-        namamatakuliah: '',
-        sks: '',
-        semester: '',
+        name: '',
+        username: '',
+        email: '',
+        password: '',
+        role: '',
     });
     
-    const [sksValue, setSksValue] = useState<number>(2);
-
     useEffect(() => {
-        if (matakuliah) {
+        if (user) {
             setData({
-                kodematakuliah: matakuliah.kodematakuliah || '',
-                namamatakuliah: matakuliah.namamatakuliah || '',
-                sks: matakuliah.sks?.toString() || '',
-                semester: matakuliah.semester || '',
+                name: user.name || '',
+                username: user.username || '',
+                email: user.email || '',
+                password: '',
+                role: user.role || '',
             });
-            setSksValue(matakuliah.sks || 2);
         } else {
-            reset('kodematakuliah', 'namamatakuliah', 'sks', 'semester');
-            setSksValue(2);
+            reset('name', 'username', 'email', 'password', 'role');
         }
-    }, [matakuliah, setData, reset]);
+    }, [user, setData, reset]);
     
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         
-        if (matakuliah) {
-            put(route('matakuliah.update', matakuliah.kodematakuliah), {
+        if (user) {
+            put(route('user.update', user.id), {
                 onSuccess: () => {
                     onOpenChange(false);
                     reset();
@@ -67,7 +71,7 @@ export default function DialogForm({ open, onOpenChange, matakuliah = null, onSu
                 },
             });
         } else {
-            post(route('matakuliah.store'), {
+            post(route('user.store'), {
                 onSuccess: () => {
                     onOpenChange(false);
                     reset();
@@ -83,154 +87,158 @@ export default function DialogForm({ open, onOpenChange, matakuliah = null, onSu
             if (!isOpen) reset();
         }}>
             <DialogContent className="sm:max-w-[500px]">
-                <Head title={matakuliah ? 'Edit Matakuliah' : 'Tambah Matakuliah'} />
+                <Head title={user ? 'Edit User' : 'Tambah User'} />
                 
                 <DialogHeader className="pb-4 border-b">
                     <DialogTitle className="flex items-center gap-2 text-xl font-semibold">
-                        <BookOpen className="h-5 w-5 text-primary" />
-                        {matakuliah ? 'Edit Matakuliah' : 'Tambah Matakuliah Baru'}
+                        <User className="h-5 w-5 text-primary" />
+                        {user ? 'Edit User' : 'Tambah User Baru'}
                     </DialogTitle>
                     <DialogDescription className="text-muted-foreground mt-1">
-                        {matakuliah 
-                            ? 'Perbarui informasi matakuliah yang sudah ada' 
-                            : 'Isi formulir untuk menambahkan matakuliah baru ke sistem'}
+                        {user 
+                            ? 'Perbarui informasi pengguna yang sudah ada' 
+                            : 'Isi formulir untuk menambahkan pengguna baru ke sistem'}
                     </DialogDescription>
                 </DialogHeader>
                
                 <form onSubmit={handleSubmit} className="space-y-5 pt-4">
                     <div className="space-y-2">
-                        <Label htmlFor="kodematakuliah" className="flex items-center gap-1.5">
-                            <BookText className="h-4 w-4" />
-                            Kode Matakuliah
+                        <Label htmlFor="name" className="flex items-center gap-1.5">
+                            <User className="h-4 w-4" />
+                            Nama Lengkap
                         </Label>
                         <Input
-                            id="kodematakuliah"
+                            id="name"
                             type="text"
-                            value={data.kodematakuliah}
-                            onChange={(e) => setData('kodematakuliah', e.target.value)}
-                            disabled={!!matakuliah}
-                            placeholder="Contoh: MK001"
+                            value={data.name}
+                            onChange={(e) => setData('name', e.target.value)}
+                            placeholder="Masukkan nama lengkap"
                             className={cn(
                                 "transition-all focus-visible:ring-primary",
-                                errors.kodematakuliah ? 'border-red-500 focus-visible:ring-red-500' : ''
+                                errors.name ? 'border-red-500 focus-visible:ring-red-500' : ''
                             )}
                         />
-                        {errors.kodematakuliah && (
+                        {errors.name && (
                             <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
                                 <span className="inline-block h-1.5 w-1.5 rounded-full bg-red-500"></span>
-                                {errors.kodematakuliah}
+                                {errors.name}
                             </p>
                         )}
-                        {!errors.kodematakuliah && (
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="username" className="flex items-center gap-1.5">
+                            <AtSign className="h-4 w-4" />
+                            Username
+                        </Label>
+                        <Input
+                            id="username"
+                            type="text"
+                            value={data.username}
+                            onChange={(e) => setData('username', e.target.value)}
+                            placeholder="Masukkan username"
+                            className={cn(
+                                "transition-all focus-visible:ring-primary",
+                                errors.username ? 'border-red-500 focus-visible:ring-red-500' : ''
+                            )}
+                        />
+                        {errors.username && (
+                            <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                                <span className="inline-block h-1.5 w-1.5 rounded-full bg-red-500"></span>
+                                {errors.username}
+                            </p>
+                        )}
+                        {!errors.username && (
                             <p className="text-muted-foreground text-xs">
-                                Kode unik untuk identifikasi matakuliah
+                                Username unik untuk login ke sistem
                             </p>
                         )}
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="namamatakuliah" className="flex items-center gap-1.5">
-                            <BookOpen className="h-4 w-4" />
-                            Nama Matakuliah
+                        <Label htmlFor="email" className="flex items-center gap-1.5">
+                            <AtSign className="h-4 w-4" />
+                            Email
                         </Label>
                         <Input
-                            id="namamatakuliah"
-                            type="text"
-                            value={data.namamatakuliah}
-                            onChange={(e) => setData('namamatakuliah', e.target.value)}
-                            placeholder="Masukkan nama matakuliah"
+                            id="email"
+                            type="email"
+                            value={data.email}
+                            onChange={(e) => setData('email', e.target.value)}
+                            placeholder="Masukkan alamat email"
                             className={cn(
                                 "transition-all focus-visible:ring-primary",
-                                errors.namamatakuliah ? 'border-red-500 focus-visible:ring-red-500' : ''
+                                errors.email ? 'border-red-500 focus-visible:ring-red-500' : ''
                             )}
                         />
-                        {errors.namamatakuliah && (
+                        {errors.email && (
                             <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
                                 <span className="inline-block h-1.5 w-1.5 rounded-full bg-red-500"></span>
-                                {errors.namamatakuliah}
+                                {errors.email}
                             </p>
                         )}
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="sks" className="flex items-center gap-1.5">
-                            <Clock className="h-4 w-4" />
-                            SKS
+                        <Label htmlFor="password" className="flex items-center gap-1.5">
+                            <Key className="h-4 w-4" />
+                            {user ? 'Password (Kosongkan jika tidak ingin mengubah)' : 'Password'}
                         </Label>
-                        <div className="flex items-center space-x-2">
-                            <Input
-                                id="sks"
-                                type="number"
-                                min="1"
-                                max="6"
-                                value={data.sks}
-                                onChange={(e) => {
-                                    const value = parseInt(e.target.value);
-                                    setData('sks', e.target.value);
-                                    if (!isNaN(value)) setSksValue(value);
-                                }}
-                                className={cn(
-                                    "transition-all focus-visible:ring-primary w-24",
-                                    errors.sks ? 'border-red-500 focus-visible:ring-red-500' : ''
-                                )}
-                            />
-                            <div className="flex-1">
-                                <div className="h-2 bg-gray-200 rounded-full">
-                                    <div 
-                                        className="h-2 bg-primary rounded-full transition-all" 
-                                        style={{ width: `${Math.min(100, (sksValue / 6) * 100)}%` }}
-                                    ></div>
-                                </div>
-                                <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                                    <span>1</span>
-                                    <span>2</span>
-                                    <span>3</span>
-                                    <span>4</span>
-                                    <span>5</span>
-                                    <span>6</span>
-                                </div>
-                            </div>
-                        </div>
-                        {errors.sks && (
+                        <Input
+                            id="password"
+                            type="password"
+                            value={data.password}
+                            onChange={(e) => setData('password', e.target.value)}
+                            placeholder={user ? "Kosongkan jika tidak ingin mengubah" : "Masukkan password"}
+                            className={cn(
+                                "transition-all focus-visible:ring-primary",
+                                errors.password ? 'border-red-500 focus-visible:ring-red-500' : ''
+                            )}
+                        />
+                        {errors.password && (
                             <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
                                 <span className="inline-block h-1.5 w-1.5 rounded-full bg-red-500"></span>
-                                {errors.sks}
+                                {errors.password}
                             </p>
                         )}
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="semester" className="flex items-center gap-1.5">
-                            <Calendar className="h-4 w-4" />
-                            Semester
+                        <Label htmlFor="role" className="flex items-center gap-1.5">
+                            <UserCog className="h-4 w-4" />
+                            Role
                         </Label>
                         <Select
-                            value={data.semester.toString()}
-                            onValueChange={(value) => setData('semester', value)}
+                            value={data.role}
+                            onValueChange={(value) => setData('role', value)}
                         >
                             <SelectTrigger 
                                 className={cn(
                                     "transition-all focus-visible:ring-primary",
-                                    errors.semester ? 'border-red-500 focus-visible:ring-red-500' : ''
+                                    errors.role ? 'border-red-500 focus-visible:ring-red-500' : ''
                                 )}
                             >
-                                <SelectValue placeholder="Pilih Semester" />
+                                <SelectValue placeholder="Pilih Role" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="Ganjil" className="flex items-center gap-2">
-                                    <span className="h-2 w-2 rounded-full bg-blue-500"></span>
-                                    Ganjil
+                                <SelectItem value="dosen" className="flex items-center gap-2">
+                                    <span className="h-2 w-2 rounded-full bg-red-500"></span>
+                                    dosen
                                 </SelectItem>
-                                <SelectItem value="Genap" className="flex items-center gap-2">
+                                <SelectItem value="akademis" className="flex items-center gap-2">
+                                    <span className="h-2 w-2 rounded-full bg-blue-500"></span>
+                                    Akademis
+                                </SelectItem>
+                                <SelectItem value="mahasiswa" className="flex items-center gap-2">
                                     <span className="h-2 w-2 rounded-full bg-green-500"></span>
-                                    Genap
+                                    Mahasiswa
                                 </SelectItem>
                             </SelectContent>
                         </Select>
-                        {errors.semester && (
+                        {errors.role && (
                             <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
                                 <span className="inline-block h-1.5 w-1.5 rounded-full bg-red-500"></span>
-                                {errors.semester}
+                                {errors.role}
                             </p>
                         )}
                     </div>
@@ -258,7 +266,7 @@ export default function DialogForm({ open, onOpenChange, matakuliah = null, onSu
                                     Memproses...
                                 </>
                             ) : (
-                                <>{matakuliah ? 'Perbarui' : 'Simpan'}</>
+                                <>{user ? 'Perbarui' : 'Simpan'}</>
                             )}
                         </Button>
                     </div>

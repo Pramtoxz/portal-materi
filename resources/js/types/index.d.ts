@@ -34,6 +34,8 @@ export interface User {
     id: number;
     name: string;
     email: string;
+    username: string;
+    role: string;
     avatar?: string;
     email_verified_at: string | null;
     created_at: string;
@@ -45,8 +47,15 @@ export interface PageProps {
     auth: Auth;
     errors: Record<string, string>;
     deferred?: Record<string, string[] | undefined>;
-    matakuliah: {
+    matakuliah?: {
         data: MatakuliahProps[];
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+    };
+    users?: {
+        data: User[];
         current_page: number;
         last_page: number;
         per_page: number;

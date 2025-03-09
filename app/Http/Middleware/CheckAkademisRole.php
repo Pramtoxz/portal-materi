@@ -15,10 +15,11 @@ class CheckAkademisRole
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->user() && $request->user()->role !== 'akademis') {
-            return redirect()->route('home');
+        // Izinkan akses untuk dosen dan akademis
+        if ($request->user() && ($request->user()->role === 'akademis' || $request->user()->role === 'dosen')) {
+            return $next($request);
         }
 
-        return $next($request);
+        return redirect()->route('home')->with('error', 'Anda tidak memiliki akses ke halaman ini.');
     }
 }
