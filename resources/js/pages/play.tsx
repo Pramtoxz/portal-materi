@@ -4,6 +4,10 @@ import { ChevronLeft, Download, FileText, Play as PlayIcon } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react';
 import { Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
+import LogoJayanusa from '@/assets/jayanusa.png';
+import LogoKampusMerdeka from '@/assets/kampusmerdeka.png';
+import LogoTutwuri from '@/assets/tutwuri.png';
+
 
 interface Props {
     materi: {
@@ -95,6 +99,36 @@ export default function Play({ materi }: Props) {
                 {/* Hero Section */}
                 <div className="bg-gradient-to-r from-blue-600 to-blue-400 dark:bg-gradient-to-r dark:from-[#b800e6] dark:via-[#dd00ff] dark:to-[#ff00ff] py-12 relative overflow-hidden">
                     <div className="absolute inset-0 bg-grid-white/[0.2] bg-[size:20px_20px] animate-[pulse_4s_ease-in-out_infinite]" />
+                    
+                    {/* Logo Box di kanan atas */}
+                    <motion.div 
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="absolute top-4 right-4 z-10"
+                    >
+                        <motion.div 
+                            className="bg-white p-2 rounded-lg shadow-md flex items-center gap-2"
+                            whileHover={{ scale: 1.05 }}
+                        >
+                            <img 
+                                src={LogoJayanusa} 
+                                alt="Logo Jayanusa" 
+                                className="h-6 w-auto sm:h-8"
+                            />
+                            <img 
+                                src={LogoTutwuri} 
+                                alt="Logo Tutwuri" 
+                                className="h-6 w-auto sm:h-8"
+                            />
+                            <img 
+                                src={LogoKampusMerdeka} 
+                                alt="Logo Kampus Merdeka" 
+                                className="h-6 w-auto sm:h-8"
+                            />
+                        </motion.div>
+                    </motion.div>
+                    
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
                         <motion.div
                             initial={{ opacity: 0, y: -20 }}
