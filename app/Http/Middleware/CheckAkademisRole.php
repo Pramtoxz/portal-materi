@@ -20,6 +20,7 @@ class CheckAkademisRole
             return $next($request);
         }
 
+        // Jika bukan akademis atau dosen, arahkan ke home
         return redirect()->route('home')->with('error', 'Anda tidak memiliki akses ke halaman ini.');
     }
 }

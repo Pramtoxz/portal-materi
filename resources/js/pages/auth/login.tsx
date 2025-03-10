@@ -16,7 +16,7 @@ interface LoginProps {
     canResetPassword: boolean;
 }
 
-export default function Login({ status, canResetPassword }: LoginProps) {
+export default function Login({ status }: LoginProps) {
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -117,7 +117,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                         value={data.username}
                                         onChange={(e) => setData('username', e.target.value)}
                                         placeholder="Masukkan username Anda"
-                                        className="w-full pl-10 pr-3 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                                        className="w-full pl-10 pr-3 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:placeholder-gray-400"
                                     />
                                 </div>
                                 {errors.username && (
@@ -130,11 +130,6 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                     <label htmlFor="password" className="block text-sm font-medium text-gray-700 transition-colors group-focus-within:text-blue-600">
                                         Password
                                     </label>
-                                    {canResetPassword && (
-                                        <a href={route('password.request')} className="text-xs text-blue-600 hover:text-blue-800 transition-colors duration-200">
-                                            Lupa password?
-                                        </a>
-                                    )}
                                 </div>
                                 <div className="relative">
                                     <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
@@ -147,7 +142,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                         value={data.password}
                                         onChange={(e) => setData('password', e.target.value)}
                                         placeholder="Masukkan password"
-                                        className="w-full pl-10 pr-10 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                                        className="w-full pl-10 pr-10 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:placeholder-gray-400"
                                     />
                                     <button
                                         type="button"
