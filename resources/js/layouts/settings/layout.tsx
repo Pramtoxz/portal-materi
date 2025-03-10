@@ -18,7 +18,7 @@ const sidebarNavItems: NavItem[] = [
         icon: null,
     },
     {
-        title: 'Appearance',
+        title: 'Tema',
         url: '/settings/appearance',
         icon: null,
     },

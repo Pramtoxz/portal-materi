@@ -7,6 +7,7 @@ use App\Http\Controllers\MatakuliahController;
 use App\Http\Controllers\MateriController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\DashboardController;
 
 // Redirect root ke login
 Route::get('/', function () {
@@ -31,9 +32,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('home');
     
     // Route untuk akademis
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard')->middleware(['auth', 'akademis']);
+    Route::get('dashboard', [DashboardController::class, 'index'])
+        ->name('dashboard')
+        ->middleware(['auth', 'akademis']);
 
     // Route untuk mahasiswa
     Route::get('mahasiswa', function () {

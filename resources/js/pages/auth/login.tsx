@@ -65,7 +65,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                     />
                 </div>
                 <p className="mt-4 text-indigo-700 font-medium">
-                    {isLoading ? 'Proses Nya Galama Kok!!!' : 'Memproses login...'}
+                    {isLoading ? 'Bangga Menjadi Mahasiswa Jayanusa' : 'Memproses login...'}
                 </p>
             </div>
         );
