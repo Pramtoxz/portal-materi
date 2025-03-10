@@ -1,6 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
-import { useState, useMemo } from 'react';
-import { Search, Sparkles, Moon, Sun, LogOut, Filter, SortAsc } from 'lucide-react';
+import { useState, useMemo, useRef } from 'react';
+import { Search, Sparkles, Moon, Sun, LogOut, Filter, SortAsc, UserRoundCog } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
@@ -18,6 +18,18 @@ import {
     DropdownMenuSeparator,
     DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+    DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import InputError from '@/components/input-error';
+import { useForm } from '@inertiajs/react';
 
 interface MatakuliahProps {
     kodematakuliah: string;
@@ -37,6 +49,39 @@ export default function Welcome({ matakuliah }: { matakuliah: MatakuliahProps[] 
     const [selectedSemester, setSelectedSemester] = useState('all');
     const [sortMode, setSortMode] = useState<'name' | 'code' | 'semester'>('name');
     const [, setIsDark] = useState(false);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    
+    const passwordInput = useRef<HTMLInputElement>(null);
+    const currentPasswordInput = useRef<HTMLInputElement>(null);
+
+    const { data, setData, errors, put, reset, processing, recentlySuccessful } = useForm({
+        current_password: '',
+        password: '',
+        password_confirmation: '',
+    });
+
+    const updatePassword = (e: React.FormEvent) => {
+        e.preventDefault();
+
+        put(route('password.update'), {
+            preserveScroll: true,
+            onSuccess: () => {
+                reset();
+                setIsDialogOpen(false);
+            },
+            onError: (errors) => {
+                if (errors.password) {
+                    reset('password', 'password_confirmation');
+                    passwordInput.current?.focus();
+                }
+
+                if (errors.current_password) {
+                    reset('current_password');
+                    currentPasswordInput.current?.focus();
+                }
+            },
+        });
+    };
 
     const filteredMatakuliah = useMemo(() => {
         const filtered = matakuliah.filter((mk) => {
@@ -70,21 +115,111 @@ export default function Welcome({ matakuliah }: { matakuliah: MatakuliahProps[] 
             <Head title="Portal Materi" />
             
             <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 dark:bg-gradient-to-br dark:from-[#1a1a1a] dark:via-[#0f1117] dark:to-black transition-all duration-500">
-                {/* Navbar dengan Logout - Tambah animasi hover */}
+                {/* Navbar dengan Dialog Ganti Password - Tambah animasi hover */}
                 <motion.div 
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="absolute top-0 right-0 p-4 z-10"
                 >
-                    <Link 
-                        href={route('logout')} 
-                        method="post" 
-                        as="button"
-                        className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20 text-white transition-all duration-300"
-                    >
-                        <LogOut className="h-4 w-4" />
-                        <span>Logout</span>
-                    </Link>
+                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button 
+                                className="flex items-center gap-2 px-4 py-2 rounded-full bg-white hover:bg-white/90 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20 text-black transition-all duration-300"
+                            >
+                                <UserRoundCog className="h-4 w-4 text-black" />
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-md">
+                            <DialogHeader>
+                                <DialogTitle className="text-blue-900 dark:text-white">Pengaturan Akun</DialogTitle>
+                                <DialogDescription className="dark:text-[#dd00ff]/80">
+                                    Kelola akun dan keamanan Anda
+                                </DialogDescription>
+                            </DialogHeader>
+                            <form onSubmit={updatePassword} className="space-y-4 py-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="current_password" className="text-blue-900 dark:text-white">Kata Sandi Saat Ini</Label>
+                                    <Input
+                                        id="current_password"
+                                        ref={currentPasswordInput}
+                                        value={data.current_password}
+                                        onChange={(e) => setData('current_password', e.target.value)}
+                                        type="password"
+                                        className="border-blue-200 dark:border-[#dd00ff]/30"
+                                        autoComplete="current-password"
+                                        placeholder="Kata sandi saat ini"
+                                    />
+                                    <InputError message={errors.current_password} />
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label htmlFor="password" className="text-blue-900 dark:text-white">Kata Sandi Baru</Label>
+                                    <Input
+                                        id="password"
+                                        ref={passwordInput}
+                                        value={data.password}
+                                        onChange={(e) => setData('password', e.target.value)}
+                                        type="password"
+                                        className="border-blue-200 dark:border-[#dd00ff]/30"
+                                        autoComplete="new-password"
+                                        placeholder="Kata sandi baru"
+                                    />
+                                    <InputError message={errors.password} />
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label htmlFor="password_confirmation" className="text-blue-900 dark:text-white">Konfirmasi Kata Sandi</Label>
+                                    <Input
+                                        id="password_confirmation"
+                                        value={data.password_confirmation}
+                                        onChange={(e) => setData('password_confirmation', e.target.value)}
+                                        type="password"
+                                        className="border-blue-200 dark:border-[#dd00ff]/30"
+                                        autoComplete="new-password"
+                                        placeholder="Konfirmasi kata sandi"
+                                    />
+                                    <InputError message={errors.password_confirmation} />
+                                </div>
+
+                                <DialogFooter className="mt-6 flex justify-between items-center">
+                                    <div>
+                                        {recentlySuccessful && (
+                                            <p className="text-sm text-green-600 dark:text-green-400">Tersimpan</p>
+                                        )}
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <Button 
+                                            type="button" 
+                                            variant="outline" 
+                                            onClick={() => setIsDialogOpen(false)}
+                                            className="border-blue-200 dark:border-[#dd00ff]/30"
+                                        >
+                                            Batal
+                                        </Button>
+                                        <Button 
+                                            type="submit" 
+                                            disabled={processing}
+                                            className="bg-gradient-to-r from-blue-600 to-blue-500 dark:from-[#b800e6] dark:via-[#dd00ff] dark:to-[#ff00ff]"
+                                        >
+                                            Simpan
+                                        </Button>
+                                    </div>
+                                </DialogFooter>
+                            </form>
+                            
+                            <div className="border-t border-blue-200 dark:border-[#dd00ff]/30 pt-4 mt-2">
+                                <Link 
+                                    href={route('logout')} 
+                                    method="post" 
+                                    as="button"
+                                    className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-all duration-300"
+                                >
+                                    <LogOut className="h-4 w-4" />
+                                    <span>Logout</span>
+                                </Link>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
                 </motion.div>
 
                 {/* Hero Section dengan animasi yang lebih smooth */}

@@ -65,7 +65,7 @@ export default function Login({ status }: LoginProps) {
                     />
                 </div>
                 <p className="mt-4 text-indigo-700 font-medium">
-                    {isLoading ? 'Bangga Menjadi Mahasiswa Jayanusa' : 'Memproses login...'}
+                    {isLoading ? '⏳  Sedang Di Proses...' : '🚪✨ Membuka pintu gerbang ilmu pengetahuan...'}
                 </p>
             </div>
         );
@@ -205,9 +205,9 @@ export default function Login({ status }: LoginProps) {
                         )}
 
                         <div className="mt-6 text-center text-sm text-gray-600">
-                            Belum memiliki akun?{' '}
-                            <a href={route('register')} className="text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200">
-                                Daftar sekarang
+                            Etss... Udah Follow Instagram Jayanusa Belum?{' '}
+                            <a href="https://www.instagram.com/stmikamikjayanusa/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200">
+                                Klik Disini!
                             </a>
                         </div>
                     </div>
