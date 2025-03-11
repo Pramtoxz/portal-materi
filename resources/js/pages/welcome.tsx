@@ -1,15 +1,15 @@
 import { Head, Link } from '@inertiajs/react';
 import { useState, useMemo, useRef } from 'react';
-import { Search, Sparkles, Moon, Sun, LogOut, Filter, SortAsc, UserRoundCog } from 'lucide-react';
+import { Search, Sparkles, Moon, Sun, LogOut, Filter, SortAsc } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import LogoJayanusa from '@/assets/jayanusa.png';
-import LogoKampusMerdeka from '@/assets/kampusmerdeka.png';
-import LogoTutwuri from '@/assets/tutwuri.png';
+import LogoJayanusa from '@/assets/jayanusa.webp';
+import LogoKampusMerdeka from '@/assets/kampusmerdeka.webp';
+import LogoTutwuri from '@/assets/tutwuri.webp';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -44,7 +44,15 @@ interface MatakuliahProps {
     }[];
 }
 
-export default function Welcome({ matakuliah }: { matakuliah: MatakuliahProps[] }) {
+interface UserProps {
+    id: number;
+    name: string;
+    email: string;
+    avatar?: string; // URL avatar jika ada
+    username?: string; // NIM mahasiswa jika ada
+}
+
+export default function Welcome({ matakuliah, auth }: { matakuliah: MatakuliahProps[], auth: { user: UserProps } }) {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedSemester, setSelectedSemester] = useState('all');
     const [sortMode, setSortMode] = useState<'name' | 'code' | 'semester'>('name');
@@ -110,6 +118,28 @@ export default function Welcome({ matakuliah }: { matakuliah: MatakuliahProps[] 
         window.location.href = route('mahasiswa.materi.list', kode);
     };
 
+    // Fungsi untuk mendapatkan inisial dari nama user untuk avatar default
+    const getUserInitials = () => {
+        if (!auth.user?.name) return "U";
+        return auth.user.name
+            .split(' ')
+            .map(word => word[0])
+            .join('')
+            .toUpperCase()
+            .substring(0, 2);
+    };
+
+    // Fungsi untuk mendapatkan warna background acak untuk avatar default
+    const getAvatarBgColor = () => {
+        const colors = [
+            "bg-blue-500", "bg-purple-500", "bg-pink-500", 
+            "bg-indigo-500", "bg-green-500", "bg-yellow-500"
+        ];
+        // Gunakan ID user untuk mendapatkan warna yang konsisten
+        const colorIndex = auth.user?.id % colors.length || 0;
+        return colors[colorIndex];
+    };
+
     return (
         <>
             <Head title="Portal Materi" />
@@ -126,7 +156,18 @@ export default function Welcome({ matakuliah }: { matakuliah: MatakuliahProps[] 
                             <Button 
                                 className="flex items-center gap-2 px-4 py-2 rounded-full bg-white hover:bg-white/90 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20 text-black transition-all duration-300"
                             >
-                                <UserRoundCog className="h-4 w-4 text-black" />
+                               
+                                {auth.user?.avatar ? (
+                                    <img 
+                                        src={auth.user.avatar} 
+                                        alt={auth.user.name} 
+                                        className="h-8 w-8 rounded-full object-cover"
+                                    />
+                                ) : (
+                                    <div className={`h-8 w-8 rounded-full flex items-center justify-center text-white ${getAvatarBgColor()}`}>
+                                        {getUserInitials()}
+                                    </div>
+                                )}
                             </Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-md">
@@ -136,6 +177,31 @@ export default function Welcome({ matakuliah }: { matakuliah: MatakuliahProps[] 
                                     Kelola akun dan keamanan Anda
                                 </DialogDescription>
                             </DialogHeader>
+                            
+                            {/* Informasi User */}
+                            <div className="flex items-center space-x-4 p-4 bg-blue-50 dark:bg-[#1a1a1a] rounded-lg mb-4">
+                                {auth.user?.avatar ? (
+                                    <img 
+                                        src={auth.user.avatar} 
+                                        alt={auth.user.name} 
+                                        className="h-16 w-16 rounded-full object-cover border-2 border-blue-300 dark:border-[#dd00ff]"
+                                    />
+                                ) : (
+                                    <div className={`h-16 w-16 rounded-full flex items-center justify-center text-white text-xl font-bold ${getAvatarBgColor()}`}>
+                                        {getUserInitials()}
+                                    </div>
+                                )}
+                                <div>
+                                {auth.user?.username && (
+                                        <p className="text-sm text-blue-600 dark:text-[#dd00ff]/80">Nomor BP : {auth.user.username}</p>
+                                    )}
+                                    <h3 className="text-lg font-medium text-blue-900 dark:text-white">{auth.user?.name}</h3>
+                                    
+                                    <p className="text-sm text-blue-600 dark:text-[#dd00ff]/80">{auth.user?.email}</p>
+                                  
+                                </div>
+                            </div>
+                            
                             <form onSubmit={updatePassword} className="space-y-4 py-4">
                                 <div className="grid gap-2">
                                     <Label htmlFor="current_password" className="text-blue-900 dark:text-white">Kata Sandi Saat Ini</Label>

@@ -4,9 +4,9 @@ import { ChevronLeft, Download, FileText, Play as PlayIcon } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react';
 import { Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
-import LogoJayanusa from '@/assets/jayanusa.png';
-import LogoKampusMerdeka from '@/assets/kampusmerdeka.png';
-import LogoTutwuri from '@/assets/tutwuri.png';
+import LogoJayanusa from '@/assets/jayanusa.webp';
+import LogoKampusMerdeka from '@/assets/kampusmerdeka.webp';
+import LogoTutwuri from '@/assets/tutwuri.webp';
 
 
 interface Props {

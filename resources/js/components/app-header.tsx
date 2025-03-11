@@ -13,6 +13,7 @@ import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-react';
 import AppLogoIcon from './app-logo-icon';
+import LogoJayanusa from '@/assets/jayanusa.webp';
 
 const mainNavItems: NavItem[] = [
     {
@@ -96,7 +97,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                     <Link href="/dashboard" prefetch className="flex items-center space-x-2">
                         <div className="flex items-center justify-center size-8">
                             <img 
-                                src="/images/logojayanusa.png" 
+                                 src={LogoJayanusa}
                                 alt="Logo Jayanusa" 
                                 className="h-8 w-auto"
                             />

@@ -4,9 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Code, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import LogoKampusMerdeka from '@/assets/kampusmerdeka.png';
-import LogoTutwuri from '@/assets/tutwuri.png';
-import LogoJayanusa from '@/assets/jayanusa.png';
+import LogoKampusMerdeka from '@/assets/kampusmerdeka.webp';
+import LogoTutwuri from '@/assets/tutwuri.webp';
+import LogoJayanusa from '@/assets/jayanusa.webp';
 
 interface MateriProps {
     id: number;

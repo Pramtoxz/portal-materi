@@ -1,14 +1,19 @@
 import { Head, useForm } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
-import { Eye, EyeOff, User, Lock, LogIn } from 'lucide-react';
+import { Eye, EyeOff, User, Lock, LogIn, Calculator } from 'lucide-react';
 import { FormEventHandler } from 'react';
 import Lottie from 'lottie-react';
 import animationData from '@/assets/animasi.json';
+import LogoJayanusa from '@/assets/jayanusa.webp';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 type LoginForm = {
     username: string;
     password: string;
     remember: boolean;
+    captchaAnswer: string;
 };
 
 interface LoginProps {
@@ -18,29 +23,60 @@ interface LoginProps {
 
 export default function Login({ status }: LoginProps) {
     const [showPassword, setShowPassword] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [captchaDialogOpen, setCaptchaDialogOpen] = useState(false);
+    const [captcha, setCaptcha] = useState({ num1: 0, num2: 0, answer: 0 });
+    const [captchaAnswer, setCaptchaAnswer] = useState('');
+    const [captchaError, setCaptchaError] = useState('');
+    
     const { data, setData, post, processing, errors, reset } = useForm<Required<LoginForm>>({
         username: '',
         password: '',
         remember: false,
+        captchaAnswer: '',
     });
 
+    // Fungsi untuk menghasilkan soal matematika baru
+    const generateCaptcha = () => {
+        const num1 = Math.floor(Math.random() * 10) + 1;
+        const num2 = Math.floor(Math.random() * 10) + 1;
+        setCaptcha({
+            num1,
+            num2,
+            answer: num1 + num2
+        });
+        setCaptchaAnswer('');
+        setCaptchaError('');
+    };
+
+    // Menghasilkan CAPTCHA saat komponen dimuat
     useEffect(() => {
-        // Simulasi loading untuk animasi
-        const timer = setTimeout(() => {
-            setIsLoading(false);
-        }, 2000);
-        return () => clearTimeout(timer);
+        generateCaptcha();
     }, []);
 
-    const submit: FormEventHandler = (e) => {
+    const handleLoginAttempt: FormEventHandler = (e) => {
         e.preventDefault();
+        setCaptchaDialogOpen(true);
+    };
+
+    const submitCaptcha = () => {
+        if (parseInt(captchaAnswer) !== captcha.answer) {
+            setCaptchaError('Jawaban matematika tidak tepat, silakan coba lagi');
+            generateCaptcha();
+            return;
+        }
+        
+        setCaptchaError('');
+        setCaptchaDialogOpen(false);
         setIsSubmitting(true);
+        
+        // Setelah CAPTCHA berhasil, lanjutkan dengan login
         post(route('login'), {
             onFinish: () => {
                 reset('password');
                 setIsSubmitting(false);
+                generateCaptcha();
             },
         });
     };
@@ -73,7 +109,11 @@ export default function Login({ status }: LoginProps) {
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4 sm:p-6 md:p-8">
-            <Head title="Login Portal Materi" />
+            <Head title="Login Portal Materi">
+                <link rel="preload" href={LogoJayanusa} as="image" />
+                <link rel="preconnect" href="https://fonts.googleapis.com" />
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+            </Head>
             
             <div className="w-full max-w-md transition-all duration-700 opacity-100 scale-100">
                 <div className="bg-white rounded-2xl shadow-xl overflow-hidden transform transition-all duration-300 hover:shadow-2xl">
@@ -86,7 +126,7 @@ export default function Login({ status }: LoginProps) {
                         
                         <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-md transform transition-transform duration-300 hover:scale-105 z-10">
                             <img 
-                                src="/images/logojayanusa.png" 
+                                 src={LogoJayanusa}
                                 alt="Logo Jayanusa" 
                                 className="w-16 h-16 object-contain"
                             />
@@ -100,7 +140,7 @@ export default function Login({ status }: LoginProps) {
                     </div>
 
                     <div className="p-6 sm:p-8">
-                        <form className="space-y-5" onSubmit={submit}>
+                        <form className="space-y-5" onSubmit={handleLoginAttempt}>
                             <div className="group">
                                 <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1.5 transition-colors group-focus-within:text-blue-600">
                                     Username
@@ -213,10 +253,56 @@ export default function Login({ status }: LoginProps) {
                     </div>
                 </div>
 
-                <div className="mt-6 text-center text-xs text-gray-500">
+                <div className="mt-6 text-center text-xs text-gray-500 font-medium">
                     &copy; {new Date().getFullYear()} STMIK - AMIK JAYANUSA. Hak Cipta Dilindungi.
                 </div>
             </div>
+            
+            {/* Dialog CAPTCHA */}
+            <Dialog open={captchaDialogOpen} onOpenChange={setCaptchaDialogOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Verifikasi Keamanan</DialogTitle>
+                        <DialogDescription>
+                            Silakan jawab pertanyaan matematika berikut untuk melanjutkan.
+                        </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="flex flex-col space-y-4 py-4">
+                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <div className="flex items-center justify-center text-xl font-medium text-gray-800">
+                                {captcha.num1} + {captcha.num2} = ?
+                            </div>
+                        </div>
+                        
+                        <div className="relative">
+                            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                                <Calculator className="h-5 w-5" />
+                            </div>
+                            <Input
+                                type="text"
+                                value={captchaAnswer}
+                                onChange={(e) => setCaptchaAnswer(e.target.value)}
+                                placeholder="Masukkan jawaban Anda"
+                                className="pl-10"
+                            />
+                        </div>
+                        
+                        {captchaError && (
+                            <p className="text-red-500 text-sm">{captchaError}</p>
+                        )}
+                    </div>
+                    
+                    <DialogFooter className="flex space-x-2 sm:space-x-0">
+                        <Button variant="outline" onClick={generateCaptcha}>
+                            Ganti Soal
+                        </Button>
+                        <Button type="submit" onClick={submitCaptcha}>
+                            Verifikasi
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

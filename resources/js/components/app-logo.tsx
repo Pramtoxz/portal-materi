@@ -1,9 +1,10 @@
+import LogoJayanusa from '@/assets/jayanusa.webp';
 export default function AppLogo() {
     return (
         <>
             <div className="flex items-center justify-center size-8">
                 <img 
-                    src="/images/logojayanusa.png"
+                     src={LogoJayanusa}
                     alt="Logo Jayanusa" 
                     className="h-8 w-auto"
                 />

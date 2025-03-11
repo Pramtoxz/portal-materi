@@ -142,6 +142,7 @@ export default function Dashboard({ loginHistory, loginStats, totalUsers, active
                                                     @{history.user.username} • {history.user.role}
                                                 </p>
                                                 <p className="text-xs text-muted-foreground">
+                                                    IP :
                                                     {history.ip_address}
                                                 </p>
                                             </div>
