@@ -1,5 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { Search, Sparkles, Moon, Sun, LogOut, Filter, SortAsc } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -56,7 +56,7 @@ export default function Welcome({ matakuliah, auth }: { matakuliah: MatakuliahPr
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedSemester, setSelectedSemester] = useState('all');
     const [sortMode, setSortMode] = useState<'name' | 'code' | 'semester'>('name');
-    const [, setIsDark] = useState(false);
+    const [themeMode, setThemeMode] = useState<'light' | 'dark' | 'system'>('system');
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     
     const passwordInput = useRef<HTMLInputElement>(null);
@@ -139,6 +139,48 @@ export default function Welcome({ matakuliah, auth }: { matakuliah: MatakuliahPr
         const colorIndex = auth.user?.id % colors.length || 0;
         return colors[colorIndex];
     };
+
+    // Fungsi untuk menerapkan tema berdasarkan preferensi
+    const applyTheme = (mode: 'light' | 'dark' | 'system') => {
+        let themeToApply: 'light' | 'dark';
+        
+        if (mode === 'system') {
+            // Gunakan preferensi sistem
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            themeToApply = systemPrefersDark ? 'dark' : 'light';
+        } else {
+            themeToApply = mode;
+        }
+        
+        // Terapkan tema
+        document.documentElement.classList.toggle('dark', themeToApply === 'dark');
+        
+        // Simpan preferensi ke localStorage
+        localStorage.setItem('themeMode', mode);
+    };
+    
+    // Deteksi preferensi tema saat komponen dimuat
+    useEffect(() => {
+        // Cek apakah ada preferensi tema yang tersimpan
+        const savedThemeMode = localStorage.getItem('themeMode') as 'light' | 'dark' | 'system' || 'system';
+        
+        // Atur state tema
+        setThemeMode(savedThemeMode);
+        
+        // Terapkan tema
+        applyTheme(savedThemeMode);
+        
+        // Tambahkan listener untuk perubahan preferensi sistem
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const handleChange = () => {
+            if (savedThemeMode === 'system') {
+                applyTheme('system');
+            }
+        };
+        
+        mediaQuery.addEventListener('change', handleChange);
+        return () => mediaQuery.removeEventListener('change', handleChange);
+    }, []);
 
     return (
         <>
@@ -358,30 +400,42 @@ export default function Welcome({ matakuliah, auth }: { matakuliah: MatakuliahPr
                             </motion.p>
                         </div>
 
-                        {/* Theme Switcher dengan animasi */}
+                        {/* Theme Switcher dengan tab System */}
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.5, delay: 0.5 }}
                         >
-                            <Tabs defaultValue="light" className="w-full" onValueChange={(value) => {
-                                setIsDark(value === 'dark');
-                                document.documentElement.classList.toggle('dark', value === 'dark');
+                            <Tabs defaultValue={themeMode} className="w-full" onValueChange={(value) => {
+                                const newMode = value as 'light' | 'dark' | 'system';
+                                setThemeMode(newMode);
+                                applyTheme(newMode);
                             }}>
-                                <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 bg-white/20 backdrop-blur-sm">
+                                <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 bg-white/20 backdrop-blur-sm">
                                     <TabsTrigger 
                                         value="light"
                                         className="text-white data-[state=active]:bg-white data-[state=active]:text-blue-600 dark:data-[state=active]:text-[#dd00ff] transition-all duration-300"
                                     >
                                         <Sun className="h-4 w-4 mr-2" />
-                                        Mode Terang
+                                        Terang
+                                    </TabsTrigger>
+                                    <TabsTrigger 
+                                        value="system"
+                                        className="text-white data-[state=active]:bg-white data-[state=active]:text-blue-600 dark:data-[state=active]:text-[#dd00ff] transition-all duration-300"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 mr-2">
+                                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                            <line x1="8" y1="21" x2="16" y2="21"></line>
+                                            <line x1="12" y1="17" x2="12" y2="21"></line>
+                                        </svg>
+                                        Sistem
                                     </TabsTrigger>
                                     <TabsTrigger 
                                         value="dark"
                                         className="text-white data-[state=active]:bg-white data-[state=active]:text-blue-600 dark:data-[state=active]:text-[#dd00ff] transition-all duration-300"
                                     >
                                         <Moon className="h-4 w-4 mr-2" />
-                                        Mode Gelap
+                                        Gelap
                                     </TabsTrigger>
                                 </TabsList>
                             </Tabs>

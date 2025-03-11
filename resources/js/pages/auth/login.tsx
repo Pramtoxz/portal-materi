@@ -37,6 +37,28 @@ export default function Login({ status }: LoginProps) {
         captchaAnswer: '',
     });
 
+    // Tambahkan useEffect untuk menerapkan tema dari localStorage
+    useEffect(() => {
+        const savedThemeMode = localStorage.getItem('themeMode') as 'light' | 'dark' | 'system' || 'system';
+        
+        if (savedThemeMode === 'system') {
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.documentElement.classList.toggle('dark', systemPrefersDark);
+        } else {
+            document.documentElement.classList.toggle('dark', savedThemeMode === 'dark');
+        }
+        
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const handleChange = () => {
+            if (savedThemeMode === 'system') {
+                document.documentElement.classList.toggle('dark', mediaQuery.matches);
+            }
+        };
+        
+        mediaQuery.addEventListener('change', handleChange);
+        return () => mediaQuery.removeEventListener('change', handleChange);
+    }, []);
+
     // Fungsi untuk menghasilkan soal matematika baru
     const generateCaptcha = () => {
         const num1 = Math.floor(Math.random() * 10) + 1;
@@ -108,7 +130,7 @@ export default function Login({ status }: LoginProps) {
     }
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4 sm:p-6 md:p-8">
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-[#1a1a1a] dark:via-[#0f1117] dark:to-black transition-all duration-500 p-4 sm:p-6 md:p-8">
             <Head title="Login Portal Materi">
                 <link rel="preload" href={LogoJayanusa} as="image" />
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -116,8 +138,8 @@ export default function Login({ status }: LoginProps) {
             </Head>
             
             <div className="w-full max-w-md transition-all duration-700 opacity-100 scale-100">
-                <div className="bg-white rounded-2xl shadow-xl overflow-hidden transform transition-all duration-300 hover:shadow-2xl">
-                    <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 sm:p-8 flex flex-col items-center relative overflow-hidden">
+                <div className="bg-white dark:bg-[#1a1a1a]/80 rounded-2xl shadow-xl overflow-hidden transform transition-all duration-300 hover:shadow-2xl dark:border dark:border-[#dd00ff]/20">
+                    <div className="bg-gradient-to-r from-blue-600 to-indigo-700 dark:from-[#b800e6] dark:via-[#dd00ff] dark:to-[#ff00ff] p-6 sm:p-8 flex flex-col items-center relative overflow-hidden">
                         {/* Elemen dekoratif */}
                         <div className="absolute top-0 left-0 w-full h-full">
                             <div className="absolute -top-10 -left-10 w-40 h-40 bg-blue-400 opacity-20 rounded-full"></div>
@@ -217,7 +239,7 @@ export default function Login({ status }: LoginProps) {
                             <div>
                                 <button 
                                     type="submit" 
-                                    className="w-full py-2.5 px-4 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-medium shadow-md hover:shadow-lg transform transition-all duration-300 hover:-translate-y-0.5 flex items-center justify-center"
+                                    className="w-full py-2.5 px-4 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-700 dark:from-[#b800e6] dark:via-[#dd00ff] dark:to-[#ff00ff] hover:from-blue-700 hover:to-indigo-800 dark:hover:from-[#a500cc] dark:hover:via-[#c700e6] dark:hover:to-[#e600e6] text-white font-medium shadow-md hover:shadow-lg transform transition-all duration-300 hover:-translate-y-0.5 flex items-center justify-center"
                                     disabled={processing}
                                 >
                                     {processing ? (
@@ -244,26 +266,29 @@ export default function Login({ status }: LoginProps) {
                             </div>
                         )}
 
-                        <div className="mt-6 text-center text-sm text-gray-600">
+                        <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
                             Etss... Udah Follow Instagram Jayanusa Belum?{' '}
-                            <a href="https://www.instagram.com/stmikamikjayanusa/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200">
+                            <a href="https://www.instagram.com/stmikamikjayanusa/" 
+                               target="_blank" 
+                               rel="noopener noreferrer" 
+                               className="text-blue-600 hover:text-blue-800 dark:text-[#dd00ff] dark:hover:text-[#ff00ff] font-medium transition-colors duration-200">
                                 Klik Disini!
                             </a>
                         </div>
                     </div>
                 </div>
 
-                <div className="mt-6 text-center text-xs text-gray-500 font-medium">
+                <div className="mt-6 text-center text-xs text-gray-500 dark:text-gray-400 font-medium">
                     &copy; {new Date().getFullYear()} STMIK - AMIK JAYANUSA. Hak Cipta Dilindungi.
                 </div>
             </div>
             
-            {/* Dialog CAPTCHA */}
+            {/* Dialog CAPTCHA dengan tema gelap */}
             <Dialog open={captchaDialogOpen} onOpenChange={setCaptchaDialogOpen}>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-md dark:bg-[#1a1a1a] dark:border-[#dd00ff]/20">
                     <DialogHeader>
-                        <DialogTitle>Verifikasi Keamanan</DialogTitle>
-                        <DialogDescription>
+                        <DialogTitle className="dark:text-white">Verifikasi Keamanan</DialogTitle>
+                        <DialogDescription className="dark:text-[#dd00ff]/80">
                             Silakan jawab pertanyaan matematika berikut untuk melanjutkan.
                         </DialogDescription>
                     </DialogHeader>

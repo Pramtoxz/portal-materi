@@ -1,5 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Code, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -35,6 +35,29 @@ interface Props {
 
 export default function Materi({ matakuliah, materi }: Props) {
     const [searchQuery, setSearchQuery] = useState('');
+    
+    // Tambahkan useEffect untuk menerapkan tema dari localStorage
+    useEffect(() => {
+        const savedThemeMode = localStorage.getItem('themeMode') as 'light' | 'dark' | 'system' || 'system';
+        
+        if (savedThemeMode === 'system') {
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.documentElement.classList.toggle('dark', systemPrefersDark);
+        } else {
+            document.documentElement.classList.toggle('dark', savedThemeMode === 'dark');
+        }
+        
+        // Tambahkan listener untuk perubahan preferensi sistem
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const handleChange = () => {
+            if (savedThemeMode === 'system') {
+                document.documentElement.classList.toggle('dark', mediaQuery.matches);
+            }
+        };
+        
+        mediaQuery.addEventListener('change', handleChange);
+        return () => mediaQuery.removeEventListener('change', handleChange);
+    }, []);
 
     const filteredMateri = materi.data.filter((item) =>
         item.namamateri.toLowerCase().includes(searchQuery.toLowerCase())
