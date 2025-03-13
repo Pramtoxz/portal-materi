@@ -45,6 +45,7 @@ const getYoutubeVideoId = (url: string) => {
 export default function Play({ materi }: Props) {
     const [isVideoPaused, setIsVideoPaused] = useState(false);
     const [playerReady, setPlayerReady] = useState(false);
+    const [showPdf, setShowPdf] = useState(false);
     const playerRef = useRef<YT.Player | null>(null);
     const videoId = getYoutubeVideoId(materi.linkmateri || '');
 
@@ -217,28 +218,48 @@ export default function Play({ materi }: Props) {
 
                         {/* File Actions */}
                         {materi.filemateri && (
-                            <motion.div 
-                                className="flex gap-4"
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.6 }}
-                            >
-                                <Button
-                                    className="bg-gradient-to-r from-blue-600 to-blue-500 dark:from-[#b800e6] dark:to-[#dd00ff] hover:from-blue-700 hover:to-blue-600"
-                                    onClick={() => window.open(route('mahasiswa.materi.view', materi.id), '_blank')}
+                            <>
+                                <motion.div 
+                                    className="flex gap-4"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.6 }}
                                 >
-                                    <FileText className="h-4 w-4 mr-2" />
-                                    Buka PDF
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    className="border-blue-200 dark:border-[#dd00ff]/30 hover:border-blue-500 dark:hover:border-[#dd00ff]"
-                                    onClick={() => window.open(route('mahasiswa.materi.download', materi.id), '_blank')}
-                                >
-                                    <Download className="h-4 w-4 mr-2" />
-                                    Download Materi
-                                </Button>
-                            </motion.div>
+                                    <Button
+                                        className="bg-gradient-to-r from-blue-600 to-blue-500 dark:from-[#b800e6] dark:to-[#dd00ff] hover:from-blue-700 hover:to-blue-600"
+                                        onClick={() => setShowPdf(!showPdf)}
+                                    >
+                                        <FileText className="h-4 w-4 mr-2" />
+                                        {showPdf ? 'Tutup PDF' : 'Buka PDF'}
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        className="border-blue-200 dark:border-[#dd00ff]/30 hover:border-blue-500 dark:hover:border-[#dd00ff]"
+                                        onClick={() => window.open(route('mahasiswa.materi.download', materi.id), '_blank')}
+                                    >
+                                        <Download className="h-4 w-4 mr-2" />
+                                        Download Materi
+                                    </Button>
+                                </motion.div>
+
+                                {/* PDF Viewer */}
+                                {showPdf && (
+                                    <motion.div
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: 'auto' }}
+                                        exit={{ opacity: 0, height: 0 }}
+                                        className="w-full rounded-2xl overflow-hidden shadow-2xl border border-blue-100 dark:border-[#dd00ff]/20"
+                                    >
+                                        <div className="relative w-full" style={{ height: '800px' }}>
+                                            <iframe
+                                                src={route('mahasiswa.materi.view', materi.id)}
+                                                className="w-full h-full"
+                                                title="PDF Viewer"
+                                            />
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </>
                         )}
 
                         {/* Keterangan */}
