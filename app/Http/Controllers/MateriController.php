@@ -34,7 +34,7 @@ class MateriController extends Controller
         $validated = $request->validate([
             'kodematakuliah' => 'required|exists:matakuliah,kodematakuliah',
             'namamateri' => 'required|string|max:255',
-            'filemateri' => 'nullable|file|max:10240', // Max 10MB
+            'filemateri' => 'nullable|file|max:10240',
             'linkmateri' => 'nullable|url',
             'keterangan' => 'nullable|string'
         ]);
