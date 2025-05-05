@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->string('kodematakuliah');
             $table->string('namamateri');
-            $table->string('filemateri');
-            $table->string('linkmateri');
-            $table->string('keterangan');
+            $table->string('filemateri')->nullable();
+            $table->string('linkmateri')->nullable();
+            $table->string('keterangan')->nullable();
             $table->timestamps();
         });
     }

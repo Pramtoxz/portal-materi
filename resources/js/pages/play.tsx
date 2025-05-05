@@ -7,6 +7,9 @@ import { motion } from 'framer-motion';
 import LogoJayanusa from '@/assets/jayanusa.webp';
 import LogoKampusMerdeka from '@/assets/kampusmerdeka.webp';
 import LogoTutwuri from '@/assets/tutwuri.webp';
+import Lottie from 'lottie-react';
+import NoVideo from '@/assets/novideo.json';
+import Hymne from '@/assets/hymne.wav';
 
 
 interface Props {
@@ -47,6 +50,7 @@ export default function Play({ materi }: Props) {
     const [playerReady, setPlayerReady] = useState(false);
     const [showPdf, setShowPdf] = useState(false);
     const playerRef = useRef<YT.Player | null>(null);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
     const videoId = getYoutubeVideoId(materi.linkmateri || '');
 
     // Tambahkan useEffect untuk menerapkan tema dari localStorage
@@ -115,11 +119,54 @@ export default function Play({ materi }: Props) {
         };
     }, [materi?.linkmateri, videoId]);
 
+    // Effect untuk memutar hymne saat tidak ada video
+    useEffect(() => {
+        // Jika video tidak tersedia, putar musik hymne
+        if (!videoId) {
+            audioRef.current = new Audio(Hymne);
+            audioRef.current.loop = true;
+            audioRef.current.volume = 0.3;
+            
+            // Putar musik
+            const playAudio = () => {
+                if (audioRef.current) {
+                    audioRef.current.play().catch(error => {
+                        console.error('Gagal memutar audio:', error);
+                    });
+                }
+            };
+            
+            // Putar musik setelah interaksi user pertama kali
+            const handleUserInteraction = () => {
+                playAudio();
+                // Hapus event listener setelah interaksi pertama
+                document.removeEventListener('click', handleUserInteraction);
+            };
+            
+            // Tambahkan event listener untuk mendeteksi interaksi user
+            document.addEventListener('click', handleUserInteraction);
+            
+            // Cleanup function
+            return () => {
+                if (audioRef.current) {
+                    audioRef.current.pause();
+                    audioRef.current = null;
+                }
+                document.removeEventListener('click', handleUserInteraction);
+            };
+        }
+    }, [videoId]);
+
     return (
         <>
             <Head title={`Tonton - ${materi.namamateri}`} />
             
             <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 dark:bg-gradient-to-br dark:from-[#1a1a1a] dark:via-[#0f1117] dark:to-black transition-all duration-500">
+                {/* Audio player (hidden) */}
+                {!videoId && (
+                    <audio ref={audioRef} src={Hymne} loop preload="auto" className="hidden" />
+                )}
+                
                 {/* Hero Section */}
                 <div className="bg-gradient-to-r from-blue-600 to-blue-400 dark:bg-gradient-to-r dark:from-[#b800e6] dark:via-[#dd00ff] dark:to-[#ff00ff] py-12 relative overflow-hidden">
                     <div className="absolute inset-0 bg-grid-white/[0.2] bg-[size:20px_20px] animate-[pulse_4s_ease-in-out_infinite]" />
@@ -192,7 +239,7 @@ export default function Play({ materi }: Props) {
                         transition={{ delay: 0.4 }}
                     >
                         {/* Video Player */}
-                        {videoId && (
+                        {videoId ? (
                             <motion.div 
                                 className="aspect-video rounded-2xl overflow-hidden bg-black shadow-2xl shadow-purple-500/10"
                                 whileHover={{ scale: 1.01 }}
@@ -212,6 +259,23 @@ export default function Play({ materi }: Props) {
                                             <PlayIcon className="h-16 w-16 text-white" />
                                         </div>
                                     )}
+                                </div>
+                            </motion.div>
+                        ) : (
+                            <motion.div 
+                                className="aspect-video rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-900 shadow-2xl shadow-purple-500/10 flex items-center justify-center"
+                                whileHover={{ scale: 1.01 }}
+                                transition={{ duration: 0.3 }}
+                            >
+                                <div className="relative aspect-video flex flex-col items-center justify-center p-4">
+                                    <Lottie 
+                                        animationData={NoVideo} 
+                                        className="w-full h-full max-w-[500px]" 
+                                        loop={true}
+                                    />
+                                    <p className="text-center text-slate-700 dark:text-slate-300 text-lg font-medium mt-4">
+                                        Silahkan Buka / Download Materi di bawah ini
+                                    </p>
                                 </div>
                             </motion.div>
                         )}

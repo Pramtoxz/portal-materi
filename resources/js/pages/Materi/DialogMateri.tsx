@@ -67,7 +67,7 @@ export default function DialogMateri({ open, onOpenChange, materi = null, mataku
         const formData = new FormData();
         formData.append('kodematakuliah', data.kodematakuliah);
         formData.append('namamateri', data.namamateri);
-        formData.append('linkmateri', data.linkmateri || '');
+        formData.append('linkmateri', data.linkmateri ? data.linkmateri : '');
         formData.append('keterangan', data.keterangan || '');
         if (data.filemateri) {
             formData.append('filemateri', data.filemateri);
@@ -187,7 +187,7 @@ export default function DialogMateri({ open, onOpenChange, materi = null, mataku
                     <div className="space-y-2">
                         <Label htmlFor="linkmateri" className="flex items-center gap-1.5">
                             <LinkIcon className="h-4 w-4" />
-                            Link Materi
+                            Link Materi (Opsional)
                         </Label>
                         <Input
                             id="linkmateri"
@@ -200,6 +200,9 @@ export default function DialogMateri({ open, onOpenChange, materi = null, mataku
                                 errors.linkmateri ? 'border-red-500 focus-visible:ring-red-500' : ''
                             )}
                         />
+                        <p className="text-gray-500 dark:text-gray-400 text-xs">
+                            Link video tidak wajib diisi. Jika kosong, akan menampilkan animasi "tidak ada video".
+                        </p>
                         {errors.linkmateri && (
                             <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
                                 <span className="inline-block h-1.5 w-1.5 rounded-full bg-red-500"></span>

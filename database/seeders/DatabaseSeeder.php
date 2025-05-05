@@ -28,5 +28,19 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('password'),
             'role' => 'mahasiswa',
         ]);
+        $this->call([
+            MahasiswaSeeder1::class,
+            MahasiswaSeeder2::class,
+            MahasiswaSeeder3::class,
+            MahasiswaSeeder4::class,
+            MahasiswaSeeder5::class,
+            MahasiswaSeeder6::class,
+            MahasiswaSeeder7::class,
+            MahasiswaSeeder8::class,
+            MahasiswaSeeder9::class,
+            MahasiswaSeeder10::class,
+            MahasiswaSeeder11::class,
+        ]);
+        
     }
 }

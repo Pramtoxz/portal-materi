@@ -10,6 +10,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import LogoJayanusa from '@/assets/jayanusa.webp';
 import LogoKampusMerdeka from '@/assets/kampusmerdeka.webp';
 import LogoTutwuri from '@/assets/tutwuri.webp';
+import Hymne from '@/assets/hymne.wav';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -58,6 +59,7 @@ export default function Welcome({ matakuliah, auth }: { matakuliah: MatakuliahPr
     const [sortMode, setSortMode] = useState<'name' | 'code' | 'semester'>('name');
     const [themeMode, setThemeMode] = useState<'light' | 'dark' | 'system'>('system');
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
     
     const passwordInput = useRef<HTMLInputElement>(null);
     const currentPasswordInput = useRef<HTMLInputElement>(null);
@@ -182,11 +184,50 @@ export default function Welcome({ matakuliah, auth }: { matakuliah: MatakuliahPr
         return () => mediaQuery.removeEventListener('change', handleChange);
     }, []);
 
+    // Efek untuk memutar musik hymne otomatis
+    useEffect(() => {
+        // Buat elemen audio
+        audioRef.current = new Audio(Hymne);
+        audioRef.current.loop = true;
+        audioRef.current.volume = 0.3;
+        
+        // Putar musik
+        const playAudio = () => {
+            if (audioRef.current) {
+                audioRef.current.play().catch(error => {
+                    console.error('Gagal memutar audio:', error);
+                });
+            }
+        };
+        
+        // Putar musik setelah interaksi user pertama kali
+        const handleUserInteraction = () => {
+            playAudio();
+            // Hapus event listener setelah interaksi pertama
+            document.removeEventListener('click', handleUserInteraction);
+        };
+        
+        // Tambahkan event listener untuk mendeteksi interaksi user
+        document.addEventListener('click', handleUserInteraction);
+        
+        // Cleanup function
+        return () => {
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current = null;
+            }
+            document.removeEventListener('click', handleUserInteraction);
+        };
+    }, []);
+
     return (
         <>
             <Head title="Portal Materi" />
             
             <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 dark:bg-gradient-to-br dark:from-[#1a1a1a] dark:via-[#0f1117] dark:to-black transition-all duration-500">
+                {/* Audio player (hidden) */}
+                <audio ref={audioRef} src={Hymne} loop preload="auto" className="hidden" />
+                
                 {/* Navbar dengan Dialog Ganti Password - Tambah animasi hover */}
                 <motion.div 
                     initial={{ opacity: 0, y: -20 }}

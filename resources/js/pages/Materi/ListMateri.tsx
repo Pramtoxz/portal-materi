@@ -2,7 +2,7 @@ import { Head } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { FileText, ChevronLeft, Video, Download } from 'lucide-react';
+import { FileText, ChevronLeft, Video, Download, FileX } from 'lucide-react';
 
 interface MateriProps {
     id: number;
@@ -67,7 +67,20 @@ export default function ListMateri({ matakuliah, materi }: Props) {
                                 className="hover:shadow-lg transition-all duration-300"
                             >
                                 <CardHeader>
-                                    <h3 className="text-lg font-semibold">{item.namamateri}</h3>
+                                    <div className="flex items-center gap-2">
+                                        <h3 className="text-lg font-semibold">{item.namamateri}</h3>
+                                        {item.linkmateri ? (
+                                            <Badge variant="default" className="bg-green-500">
+                                                <Video className="h-3 w-3 mr-1" />
+                                                <span>Video</span>
+                                            </Badge>
+                                        ) : (
+                                            <Badge variant="outline" className="text-gray-500 dark:text-gray-400">
+                                                <FileX className="h-3 w-3 mr-1" />
+                                                <span>No Video</span>
+                                            </Badge>
+                                        )}
+                                    </div>
                                     {item.keterangan && (
                                         <p className="text-sm text-muted-foreground">{item.keterangan}</p>
                                     )}

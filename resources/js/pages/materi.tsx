@@ -1,9 +1,10 @@
 import { Head, Link } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Code, Search } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Code, Search, Video, FileX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import LogoKampusMerdeka from '@/assets/kampusmerdeka.webp';
 import LogoTutwuri from '@/assets/tutwuri.webp';
 import LogoJayanusa from '@/assets/jayanusa.webp';
@@ -168,9 +169,22 @@ export default function Materi({ matakuliah, materi }: Props) {
                                                 <div className="flex-grow p-6">
                                                     <div className="flex flex-col h-full justify-between">
                                                         <div>
-                                                            <h3 className="text-xl font-semibold text-blue-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-[#dd00ff] transition-colors">
-                                                                {item.namamateri}
-                                                            </h3>
+                                                            <div className="flex items-center gap-2 mb-2">
+                                                                <h3 className="text-xl font-semibold text-blue-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-[#dd00ff] transition-colors">
+                                                                    {item.namamateri}
+                                                                </h3>
+                                                                {item.linkmateri ? (
+                                                                    <Badge className="bg-green-500 dark:bg-green-600 text-white">
+                                                                        <Video className="h-3 w-3 mr-1" />
+                                                                        <span>Video</span>
+                                                                    </Badge>
+                                                                ) : (
+                                                                    <Badge variant="outline" className="border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400">
+                                                                        <FileX className="h-3 w-3 mr-1" />
+                                                                        <span>Tidak ada video</span>
+                                                                    </Badge>
+                                                                )}
+                                                            </div>
                                                             {item.keterangan && (
                                                                 <p className="text-sm text-gray-600 dark:text-gray-300">
                                                                     {item.keterangan}

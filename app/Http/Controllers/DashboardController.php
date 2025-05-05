@@ -17,11 +17,24 @@ class DashboardController extends Controller
             ->take(5)
             ->get()
             ->map(function ($session) {
+                if ($session->user) {
+                    return [
+                        'user' => [
+                            'name' => $session->user->name,
+                            'username' => $session->user->username,
+                            'role' => $session->user->role
+                        ],
+                        'ip_address' => $session->ip_address,
+                        'last_activity' => $session->last_activity,
+                        'user_agent' => $session->user_agent
+                    ];
+                }
+                
                 return [
                     'user' => [
-                        'name' => $session->user->name,
-                        'username' => $session->user->username,
-                        'role' => $session->user->role
+                        'name' => 'User Dihapus',
+                        'username' => '-',
+                        'role' => '-'
                     ],
                     'ip_address' => $session->ip_address,
                     'last_activity' => $session->last_activity,

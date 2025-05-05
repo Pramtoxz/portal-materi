@@ -45,6 +45,11 @@ class MateriController extends Controller
             $path = $request->file('filemateri')->storeAs('public/materi', $filename);
             $validated['filemateri'] = str_replace('public/', '', $path);
         }
+        
+        // Set linkmateri menjadi null jika empty string
+        if (empty($validated['linkmateri'])) {
+            $validated['linkmateri'] = null;
+        }
 
         Materi::create($validated);
 
@@ -70,6 +75,11 @@ class MateriController extends Controller
             $filename = $request->file('filemateri')->getClientOriginalName();
             $path = $request->file('filemateri')->storeAs('public/materi', $filename);
             $validated['filemateri'] = str_replace('public/', '', $path);
+        }
+        
+        // Set linkmateri menjadi null jika empty string
+        if (empty($validated['linkmateri'])) {
+            $validated['linkmateri'] = null;
         }
 
         $materi->update($validated);
