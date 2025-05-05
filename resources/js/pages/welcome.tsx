@@ -1,6 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { Search, Sparkles, Moon, Sun, LogOut, Filter, SortAsc } from 'lucide-react';
+import { Search, Sparkles, Moon, Sun, LogOut, Filter, SortAsc,ArrowBigRightDash, Music, VolumeX, Quote, BookOpen, LightbulbIcon, Play, Pause } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
@@ -32,6 +32,30 @@ import { Label } from "@/components/ui/label";
 import InputError from '@/components/input-error';
 import { useForm } from '@inertiajs/react';
 
+// Definisi CSS untuk animasi kustom
+const styles = `
+@keyframes gradient-x {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient-x {
+  background-size: 200% 100%;
+  animation: gradient-x 5s ease infinite;
+}
+
+.bg-grid-blue-100\/40 {
+  background-image: linear-gradient(to right, rgba(219, 234, 254, 0.4) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(219, 234, 254, 0.4) 1px, transparent 1px);
+}
+
+.bg-grid-purple-500\/10 {
+  background-image: linear-gradient(to right, rgba(168, 85, 247, 0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(168, 85, 247, 0.1) 1px, transparent 1px);
+}
+`;
+
 interface MatakuliahProps {
     kodematakuliah: string;
     namamatakuliah: string;
@@ -53,12 +77,35 @@ interface UserProps {
     username?: string; // NIM mahasiswa jika ada
 }
 
+// Array kutipan/quotes akademik motivasi
+const academicQuotes = [
+    "Pendidikan adalah senjata paling ampuh yang dapat kamu gunakan untuk mengubah dunia. - Nelson Mandela",
+    "Belajar tanpa berpikir itu tidaklah berguna, berpikir tanpa belajar itu berbahaya. - Konfusius",
+    "Kecerdasan bukanlah ukuran seseorang, melainkan kualitas untuk menerima dan mengembangkan ilmu pengetahuan. - Buya Hamka",
+    "Orang bijak belajar ketika mereka bisa. Orang bodoh belajar ketika mereka terpaksa. - Arthur Wellesley",
+    "Pendidikan bukan persiapan untuk hidup, pendidikan adalah hidup itu sendiri. - John Dewey",
+    "Kegagalan hanya terjadi bila kita menyerah. - BJ Habibie",
+    "Ilmu itu seperti udara, ia begitu banyak di sekitar kita, tetapi tidak bernilai kecuali ia masuk ke dalam diri kita. - Rhenald Kasali",
+    "Jangan pernah menyerah pada kesulitan, karena hujan paling deras sekalipun akan berakhir. - Najwa Shihab",
+    "Pengetahuan tidak hanya berupa fakta dan konsep, tetapi juga kemampuan untuk menggunakan fakta dan konsep tersebut secara bermakna. - Dorothy L. Sayers",
+    "Belajarlah dari kemarin, hiduplah untuk hari ini, berharaplah untuk besok. - Albert Einstein",
+    "Pendidikan adalah tiket ke masa depan. Hari esok dimiliki oleh orang-orang yang mempersiapkan dirinya sejak hari ini. - Malcolm X",
+    "Orang yang berhenti belajar adalah orang yang lanjut usia, meskipun umurnya masih muda. Orang yang tidak berhenti belajar, maka akan selamanya menjadi pemuda. - Henry Ford",
+    "Tujuan pendidikan itu untuk mempertajam kecerdasan, memperkukuh kemauan serta memperhalus perasaan. - Tan Malaka",
+    "Kamu tidak perlu menjadi luar biasa untuk memulai, tetapi kamu harus memulai untuk menjadi luar biasa. - Zig Ziglar",
+    "Jika kamu tidak dapat menjelaskan sesuatu dengan sederhana, berarti kamu belum cukup paham. - Albert Einstein",
+];
+
 export default function Welcome({ matakuliah, auth }: { matakuliah: MatakuliahProps[], auth: { user: UserProps } }) {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedSemester, setSelectedSemester] = useState('all');
     const [sortMode, setSortMode] = useState<'name' | 'code' | 'semester'>('name');
     const [themeMode, setThemeMode] = useState<'light' | 'dark' | 'system'>('system');
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isMusicDialogOpen, setIsMusicDialogOpen] = useState(false);
+    const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+    const [randomQuote, setRandomQuote] = useState('');
+    const [quoteAuthor, setQuoteAuthor] = useState('');
     const audioRef = useRef<HTMLAudioElement | null>(null);
     
     const passwordInput = useRef<HTMLInputElement>(null);
@@ -184,39 +231,137 @@ export default function Welcome({ matakuliah, auth }: { matakuliah: MatakuliahPr
         return () => mediaQuery.removeEventListener('change', handleChange);
     }, []);
 
-    // Efek untuk memutar musik hymne otomatis
+    // Efek untuk memutar musik hymne melalui dialog notifikasi
     useEffect(() => {
-        // Buat elemen audio
-        audioRef.current = new Audio(Hymne);
-        audioRef.current.loop = true;
-        audioRef.current.volume = 0.3;
+        // Pilih quote akademik secara random
+        const randomIndex = Math.floor(Math.random() * academicQuotes.length);
+        const quote = academicQuotes[randomIndex];
         
-        // Putar musik
-        const playAudio = () => {
-            if (audioRef.current) {
-                audioRef.current.play().catch(error => {
-                    console.error('Gagal memutar audio:', error);
-                });
+        // Pisahkan quote dan author
+        const lastDashIndex = quote.lastIndexOf(' - ');
+        if (lastDashIndex !== -1) {
+            setRandomQuote(quote.substring(0, lastDashIndex));
+            setQuoteAuthor(quote.substring(lastDashIndex + 3));
+        } else {
+            setRandomQuote(quote);
+            setQuoteAuthor('');
+        }
+        
+        // Hanya inisialisasi audio jika belum ada
+        if (!audioRef.current) {
+            audioRef.current = new Audio(Hymne);
+            audioRef.current.loop = true;
+            audioRef.current.volume = 0.3;
+            
+            // Tambahkan penanganan error untuk audio
+            audioRef.current.addEventListener('error', (e) => {
+                console.error('Error audio:', e);
+                setIsMusicPlaying(false);
+            });
+        }
+        
+        // Cek status musik dari localStorage
+        const musicStatus = localStorage.getItem('portalMusic');
+        if (musicStatus === 'playing') {
+            // Buat promise untuk memastikan audio siap sebelum dimainkan
+            const playPromise = audioRef.current.play();
+            
+            if (playPromise !== undefined) {
+                playPromise
+                    .then(() => {
+                        setIsMusicPlaying(true);
+                    })
+                    .catch(error => {
+                        console.error('Gagal memutar audio:', error);
+                        localStorage.setItem('portalMusic', 'paused');
+                        setIsMusicPlaying(false);
+                    });
             }
-        };
-        
-        // Putar musik setelah interaksi user pertama kali
-        const handleUserInteraction = () => {
-            playAudio();
-            // Hapus event listener setelah interaksi pertama
-            document.removeEventListener('click', handleUserInteraction);
-        };
-        
-        // Tambahkan event listener untuk mendeteksi interaksi user
-        document.addEventListener('click', handleUserInteraction);
+        } else if (musicStatus === null) {
+            // Hanya tampilkan dialog jika belum ada preferensi
+            const timer = setTimeout(() => {
+                setIsMusicDialogOpen(true);
+            }, 2000);
+            return () => clearTimeout(timer);
+        }
         
         // Cleanup function
         return () => {
             if (audioRef.current) {
-                audioRef.current.pause();
-                audioRef.current = null;
+                const currentAudio = audioRef.current;
+                // Lepaskan event listener untuk mencegah memory leak
+                currentAudio.removeEventListener('error', () => {});
+                
+                // Jangan menghapus instance audio di cleanup, biarkan instance tetap ada
+                // Ini mencegah audio bentrok saat komponen dimount ulang
+                if (!isMusicPlaying) {
+                    currentAudio.pause();
+                }
             }
-            document.removeEventListener('click', handleUserInteraction);
+        };
+    }, []);
+
+    const toggleMusic = () => {
+        if (audioRef.current) {
+            if (isMusicPlaying) {
+                audioRef.current.pause();
+                audioRef.current.currentTime = 0; // Reset posisi audio
+                localStorage.setItem('portalMusic', 'paused');
+            } else {
+                const playPromise = audioRef.current.play();
+                
+                if (playPromise !== undefined) {
+                    playPromise
+                        .then(() => {
+                            localStorage.setItem('portalMusic', 'playing');
+                        })
+                        .catch(error => {
+                            console.error('Gagal memutar audio:', error);
+                            localStorage.setItem('portalMusic', 'paused');
+                        });
+                }
+            }
+            setIsMusicPlaying(!isMusicPlaying);
+        }
+        setIsMusicDialogOpen(false);
+    };
+    
+    // Event listener untuk sinkronisasi audio antar halaman
+    useEffect(() => {
+        const handleStorageChange = (e: StorageEvent) => {
+            if (e.key === 'portalMusic') {
+                if (e.newValue === 'playing' && audioRef.current && !isMusicPlaying) {
+                    audioRef.current.play().catch(console.error);
+                    setIsMusicPlaying(true);
+                } else if (e.newValue === 'paused' && audioRef.current && isMusicPlaying) {
+                    audioRef.current.pause();
+                    setIsMusicPlaying(false);
+                }
+            }
+        };
+        
+        window.addEventListener('storage', handleStorageChange);
+        return () => window.removeEventListener('storage', handleStorageChange);
+    }, [isMusicPlaying]);
+
+    // Inject custom CSS styles into document head
+    useEffect(() => {
+        // Create style element
+        const styleElement = document.createElement('style');
+        styleElement.innerHTML = styles;
+        styleElement.setAttribute('id', 'portal-custom-styles');
+        
+        // Add it to the document head if not already present
+        if (!document.getElementById('portal-custom-styles')) {
+            document.head.appendChild(styleElement);
+        }
+        
+        // Cleanup function to remove style on unmount
+        return () => {
+            const existingStyle = document.getElementById('portal-custom-styles');
+            if (existingStyle) {
+                document.head.removeChild(existingStyle);
+            }
         };
     }, []);
 
@@ -227,6 +372,154 @@ export default function Welcome({ matakuliah, auth }: { matakuliah: MatakuliahPr
             <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 dark:bg-gradient-to-br dark:from-[#1a1a1a] dark:via-[#0f1117] dark:to-black transition-all duration-500">
                 {/* Audio player (hidden) */}
                 <audio ref={audioRef} src={Hymne} loop preload="auto" className="hidden" />
+                
+                {/* Dialog Pemutaran Musik dengan UI/UX yang ditingkatkan */}
+                <Dialog open={isMusicDialogOpen} onOpenChange={setIsMusicDialogOpen}>
+                    <DialogContent className="max-w-[95vw] sm:max-w-md mx-auto rounded-xl overflow-hidden p-0 bg-gradient-to-b from-white to-blue-50 dark:from-[#1a1a1a] dark:to-[#0f1117] border-0 shadow-2xl shadow-blue-500/20 dark:shadow-[#dd00ff]/20">
+                        <div className="relative">
+                            {/* Background pattern */}
+                            <div className="absolute inset-0 bg-grid-blue-100/40 dark:bg-grid-purple-500/10 bg-[size:20px_20px]"></div>
+                            
+                            {/* Content container */}
+                            <div className="relative z-10">
+                                {/* Animated top decoration */}
+                                <div className="h-2 bg-gradient-to-r from-blue-600 via-blue-400 to-blue-600 dark:from-[#b800e6] dark:via-[#dd00ff] dark:to-[#b800e6] animate-gradient-x"></div>
+                                
+                                <div className="p-6">
+                                    {/* Decorative academic icon */}
+                                    <div className="flex justify-center mb-6">
+                                        <motion.div
+                                            initial={{ scale: 0, rotate: -20 }}
+                                            animate={{ scale: 1, rotate: 0 }}
+                                            transition={{ type: "spring", duration: 0.8 }}
+                                            className="w-20 h-20 rounded-full bg-blue-100 dark:bg-[#dd00ff]/20 flex items-center justify-center"
+                                        >
+                                            <BookOpen className="w-10 h-10 text-blue-600 dark:text-[#dd00ff]" />
+                                        </motion.div>
+                                    </div>
+                                    
+                                    <DialogHeader className="text-center">
+                                        <motion.div
+                                            initial={{ opacity: 0, y: -10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.3, delay: 0.2 }}
+                                        >
+                                            <DialogTitle className="text-2xl sm:text-3xl font-bold text-blue-900 dark:text-white mb-3">
+                                                Selamat Datang di Portal Materi!
+                                            </DialogTitle>
+                                        </motion.div>
+                                        
+                                        <motion.div
+                                            initial={{ opacity: 0, scale: 0.9 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            transition={{ duration: 0.4, delay: 0.4 }}
+                                            className="relative py-6 px-4 mb-4 bg-blue-50 dark:bg-[#1a1a1a]/60 rounded-lg"
+                                        >
+                                            <Quote className="absolute top-2 left-2 h-4 w-4 text-blue-500/50 dark:text-[#dd00ff]/50" />
+                                            <Quote className="absolute bottom-2 right-2 h-4 w-4 rotate-180 text-blue-500/50 dark:text-[#dd00ff]/50" />
+                                            
+                                            <div className="text-base sm:text-lg text-blue-800 dark:text-white font-medium italic text-center px-4">
+                                                "{randomQuote}"
+                                            </div>
+                                            
+                                            {quoteAuthor && (
+                                                <div className="mt-2 text-right text-sm text-blue-600 dark:text-[#dd00ff]/80 font-medium">
+                                                    - {quoteAuthor}
+                                                </div>
+                                            )}
+                                        </motion.div>
+                                    </DialogHeader>
+                                    
+                                    <motion.div 
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.4, delay: 0.6 }}
+                                        className="mt-4"
+                                    >
+                                        <div className="text-sm text-blue-600 dark:text-[#dd00ff]/80 text-center mb-6">
+                                            Musik hymne akan mengiringi semangat belajar Anda
+                                        </div>
+                                        
+                                        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                                            <Button 
+                                                onClick={() => {
+                                                    toggleMusic();
+                                                    localStorage.setItem('portalMusic', 'paused');
+                                                    setIsMusicDialogOpen(false);
+                                                }}
+                                                variant="outline"
+                                                className="w-full sm:w-auto py-6 border-blue-200 hover:bg-blue-50 dark:border-[#dd00ff]/30 dark:hover:bg-[#dd00ff]/10"
+                                            >
+                                                <VolumeX className="mr-2 h-4 w-4" />
+                                                Tanpa Musik
+                                            </Button>
+                                            
+                                            <Button 
+                                                onClick={() => {
+                                                    toggleMusic();
+                                                    if (!isMusicPlaying) {
+                                                        localStorage.setItem('portalMusic', 'playing');
+                                                    }
+                                                    setIsMusicDialogOpen(false);
+                                                }}
+                                                className="w-full sm:w-auto py-6 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 dark:from-[#b800e6] dark:via-[#dd00ff] dark:to-[#ff00ff] dark:hover:from-[#a500cc] dark:hover:via-[#c700e6] dark:hover:to-[#e600e6]"
+                                            >
+                                                <Music className="mr-2 h-4 w-4" />
+                                                Dengan Musik
+                                            </Button>
+                                        </div>
+                                    </motion.div>
+                                    
+                                    {/* Mini tip */}
+                                    <motion.div
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        transition={{ delay: 1, duration: 0.5 }}
+                                        className="mt-6 pt-3 border-t border-blue-100 dark:border-[#dd00ff]/10 flex items-center justify-center text-xs text-blue-500 dark:text-[#dd00ff]/70"
+                                    >
+                                        <LightbulbIcon className="h-3 w-3 mr-1.5" />
+                                        <span>Anda dapat mengubah pilihan musik kapan saja</span>
+                                    </motion.div>
+                                </div>
+                            </div>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Kontrol Musik yang ditingkatkan */}
+                {isMusicPlaying && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="fixed bottom-4 right-4 z-50 flex gap-2"
+                    >
+                        <motion.button
+                            whileTap={{ scale: 0.9 }}
+                            whileHover={{ scale: 1.1 }}
+                            onClick={toggleMusic} 
+                            className="rounded-full p-3 flex items-center justify-center bg-gradient-to-r from-blue-600 to-blue-500 dark:from-[#b800e6] dark:via-[#dd00ff] dark:to-[#ff00ff] shadow-lg"
+                        >
+                            <Pause className="h-5 w-5 text-white" />
+                        </motion.button>
+                    </motion.div>
+                )}
+                
+                {!isMusicPlaying && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="fixed bottom-4 right-4 z-50"
+                    >
+                        <motion.button
+                            whileTap={{ scale: 0.9 }}
+                            whileHover={{ scale: 1.1 }}
+                            onClick={toggleMusic} 
+                            className="rounded-full shadow-lg p-3 flex items-center justify-center bg-blue-100 dark:bg-[#1a1a1a] border border-blue-200 dark:border-[#dd00ff]/30"
+                        >
+                            <Play className="h-5 w-5 text-blue-600 dark:text-[#dd00ff]" />
+                        </motion.button>
+                    </motion.div>
+                )}
                 
                 {/* Navbar dengan Dialog Ganti Password - Tambah animasi hover */}
                 <motion.div 
@@ -425,19 +718,53 @@ export default function Welcome({ matakuliah, auth }: { matakuliah: MatakuliahPr
                         <div className="text-center mb-8">
                             <motion.h1 
                                 className="text-4xl font-bold text-white mb-4"
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.5, delay: 0.3 }}
                             >
-                                Portal Materi Digital
+                                {/* Memisahkan teks menjadi array kata */}
+                                {["Portal", "Materi", "Digital"].map((word, i) => (
+                                    <motion.span
+                                        key={i}
+                                        className="inline-block mx-1"
+                                        initial={{ scale: 0.5, opacity: 0 }}
+                                        animate={{ 
+                                            scale: [0.5, 1.2, 1],
+                                            opacity: 1
+                                        }}
+                                        transition={{
+                                            duration: 1.5,
+                                            delay: i * 0.2,
+                                            repeat: Infinity,
+                                            repeatDelay: 3,
+                                            ease: "easeInOut"
+                                        }}
+                                    >
+                                        {word}
+                                    </motion.span>
+                                ))}
                             </motion.h1>
                             <motion.p 
                                 className="text-blue-100 dark:text-purple-100 text-xl max-w-2xl mx-auto mb-6"
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.5, delay: 0.4 }}
                             >
-                                STMIK-AMIK JAYANUSA
+                                {/* Memisahkan teks menjadi array kata */}
+                                {["STMIK", "-", "AMIK", "JAYANUSA"].map((word, i) => (
+                                    <motion.span
+                                        key={i}
+                                        className="inline-block mx-1"
+                                        initial={{ scale: 0.5, opacity: 0 }}
+                                        animate={{ 
+                                            scale: [0.5, 1.2, 1],
+                                            opacity: 1
+                                        }}
+                                        transition={{
+                                            duration: 1.5,
+                                            delay: i * 0.2 + 1, // Delay tambahan setelah teks pertama
+                                            repeat: Infinity,
+                                            repeatDelay: 3,
+                                            ease: "easeInOut"
+                                        }}
+                                    >
+                                        {word}
+                                    </motion.span>
+                                ))}
                             </motion.p>
                         </div>
 

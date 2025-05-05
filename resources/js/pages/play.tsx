@@ -1,6 +1,6 @@
 import { Head } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, Download, FileText, Play as PlayIcon } from 'lucide-react';
+import { ChevronLeft, Download, FileText, Play as PlayIcon, Music, VolumeX, AlertTriangle, Smartphone, Laptop, Pause } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
@@ -10,7 +10,13 @@ import LogoTutwuri from '@/assets/tutwuri.webp';
 import Lottie from 'lottie-react';
 import NoVideo from '@/assets/novideo.json';
 import Hymne from '@/assets/hymne.wav';
-
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 
 interface Props {
     materi: {
@@ -49,9 +55,23 @@ export default function Play({ materi }: Props) {
     const [isVideoPaused, setIsVideoPaused] = useState(false);
     const [playerReady, setPlayerReady] = useState(false);
     const [showPdf, setShowPdf] = useState(false);
+    const [isMusicDialogOpen, setIsMusicDialogOpen] = useState(false);
+    const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+    const [isPdfDialogOpen, setIsPdfDialogOpen] = useState(false);
+    const [isMobileDevice, setIsMobileDevice] = useState(false);
     const playerRef = useRef<YT.Player | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const videoId = getYoutubeVideoId(materi.linkmateri || '');
+
+    // Deteksi perangkat mobile
+    useEffect(() => {
+        const checkMobile = () => {
+            const userAgent = navigator.userAgent || navigator.vendor;
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+        };
+        
+        setIsMobileDevice(checkMobile());
+    }, []);
 
     // Tambahkan useEffect untuk menerapkan tema dari localStorage
     useEffect(() => {
@@ -121,41 +141,116 @@ export default function Play({ materi }: Props) {
 
     // Effect untuk memutar hymne saat tidak ada video
     useEffect(() => {
-        // Jika video tidak tersedia, putar musik hymne
+        // Jika video tidak tersedia, persiapkan musik hymne
         if (!videoId) {
-            audioRef.current = new Audio(Hymne);
-            audioRef.current.loop = true;
-            audioRef.current.volume = 0.3;
+            // Hanya inisialisasi audio jika belum ada
+            if (!audioRef.current) {
+                audioRef.current = new Audio(Hymne);
+                audioRef.current.loop = true;
+                audioRef.current.volume = 0.3;
+                
+                // Tambahkan penanganan error untuk audio
+                audioRef.current.addEventListener('error', (e) => {
+                    console.error('Error audio:', e);
+                    setIsMusicPlaying(false);
+                });
+            }
             
-            // Putar musik
-            const playAudio = () => {
-                if (audioRef.current) {
-                    audioRef.current.play().catch(error => {
-                        console.error('Gagal memutar audio:', error);
-                    });
+            // Cek status musik dari localStorage
+            const musicStatus = localStorage.getItem('portalMusic');
+            if (musicStatus === 'playing') {
+                // Buat promise untuk memastikan audio siap sebelum dimainkan
+                const playPromise = audioRef.current.play();
+                
+                if (playPromise !== undefined) {
+                    playPromise
+                        .then(() => {
+                            setIsMusicPlaying(true);
+                        })
+                        .catch(error => {
+                            console.error('Gagal memutar audio:', error);
+                            localStorage.setItem('portalMusic', 'paused');
+                            setIsMusicPlaying(false);
+                        });
                 }
-            };
-            
-            // Putar musik setelah interaksi user pertama kali
-            const handleUserInteraction = () => {
-                playAudio();
-                // Hapus event listener setelah interaksi pertama
-                document.removeEventListener('click', handleUserInteraction);
-            };
-            
-            // Tambahkan event listener untuk mendeteksi interaksi user
-            document.addEventListener('click', handleUserInteraction);
+            } else if (musicStatus === null) {
+                // Hanya tampilkan dialog jika belum ada preferensi
+                const timer = setTimeout(() => {
+                    setIsMusicDialogOpen(true);
+                }, 2000);
+                return () => clearTimeout(timer);
+            }
             
             // Cleanup function
             return () => {
                 if (audioRef.current) {
-                    audioRef.current.pause();
-                    audioRef.current = null;
+                    const currentAudio = audioRef.current;
+                    // Lepaskan event listener untuk mencegah memory leak
+                    currentAudio.removeEventListener('error', () => {});
+                    
+                    // Jangan menghapus instance audio di cleanup, biarkan instance tetap ada
+                    // Ini mencegah audio bentrok saat komponen dimount ulang
+                    if (!isMusicPlaying) {
+                        currentAudio.pause();
+                    }
                 }
-                document.removeEventListener('click', handleUserInteraction);
             };
         }
     }, [videoId]);
+
+    const toggleMusic = () => {
+        if (audioRef.current) {
+            if (isMusicPlaying) {
+                audioRef.current.pause();
+                audioRef.current.currentTime = 0; // Reset posisi audio
+                localStorage.setItem('portalMusic', 'paused');
+            } else {
+                const playPromise = audioRef.current.play();
+                
+                if (playPromise !== undefined) {
+                    playPromise
+                        .then(() => {
+                            localStorage.setItem('portalMusic', 'playing');
+                        })
+                        .catch(error => {
+                            console.error('Gagal memutar audio:', error);
+                            localStorage.setItem('portalMusic', 'paused');
+                        });
+                }
+            }
+            setIsMusicPlaying(!isMusicPlaying);
+        }
+        setIsMusicDialogOpen(false);
+    };
+    
+    // Event listener untuk sinkronisasi audio antar halaman
+    useEffect(() => {
+        if (!videoId) {
+            const handleStorageChange = (e: StorageEvent) => {
+                if (e.key === 'portalMusic') {
+                    if (e.newValue === 'playing' && audioRef.current && !isMusicPlaying) {
+                        audioRef.current.play().catch(console.error);
+                        setIsMusicPlaying(true);
+                    } else if (e.newValue === 'paused' && audioRef.current && isMusicPlaying) {
+                        audioRef.current.pause();
+                        setIsMusicPlaying(false);
+                    }
+                }
+            };
+            
+            window.addEventListener('storage', handleStorageChange);
+            return () => window.removeEventListener('storage', handleStorageChange);
+        }
+    }, [isMusicPlaying, videoId]);
+
+    // Fungsi untuk menampilkan peringatan PDF di mobile
+    const handlePdfButtonClick = () => {
+        if (isMobileDevice) {
+            setIsPdfDialogOpen(true);
+        } else {
+            setShowPdf(!showPdf);
+        }
+    };
 
     return (
         <>
@@ -165,6 +260,130 @@ export default function Play({ materi }: Props) {
                 {/* Audio player (hidden) */}
                 {!videoId && (
                     <audio ref={audioRef} src={Hymne} loop preload="auto" className="hidden" />
+                )}
+                
+                {/* Dialog Pemutaran Musik */}
+                {!videoId && (
+                    <Dialog open={isMusicDialogOpen} onOpenChange={setIsMusicDialogOpen}>
+                        <DialogContent className="sm:max-w-md">
+                            <DialogHeader>
+                                <DialogTitle className="text-blue-900 dark:text-white">Semangat Belajar!</DialogTitle>
+                                <DialogDescription className="dark:text-[#dd00ff]/80">
+                                    Musik hymne menemani Anda mempelajari materi baru. Mari tingkatkan fokus dan konsentrasi
+                                    dalam belajar hari ini. Sukses selalu!
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="flex justify-end space-x-4 mt-6">
+                                <Button 
+                                    variant="outline" 
+                                    onClick={() => {
+                                        setIsMusicDialogOpen(false);
+                                        localStorage.setItem('portalMusic', 'paused');
+                                    }}
+                                    className="border-blue-200 dark:border-[#dd00ff]/30"
+                                >
+                                    <VolumeX className="mr-2 h-4 w-4" />
+                                    Matikan Musik
+                                </Button>
+                                <Button 
+                                    onClick={() => {
+                                        toggleMusic();
+                                        if (!isMusicPlaying) {
+                                            localStorage.setItem('portalMusic', 'playing');
+                                        }
+                                    }}
+                                    className="bg-gradient-to-r from-blue-600 to-blue-500 dark:from-[#b800e6] dark:via-[#dd00ff] dark:to-[#ff00ff]"
+                                >
+                                    <Music className="mr-2 h-4 w-4" />
+                                    Lanjutkan
+                                </Button>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
+                )}
+                
+                {/* Dialog peringatan PDF di perangkat mobile */}
+                <Dialog open={isPdfDialogOpen} onOpenChange={setIsPdfDialogOpen}>
+                    <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                            <DialogTitle className="text-blue-900 dark:text-white flex items-center gap-2">
+                                <AlertTriangle className="h-5 w-5 text-amber-500" />
+                                Perhatian: Pembukaan PDF di Perangkat Mobile
+                            </DialogTitle>
+                            <DialogDescription className="dark:text-[#dd00ff]/80 mt-4">
+                                <div className="space-y-4">
+                                    <div className="flex items-start gap-3">
+                                        <Smartphone className="h-5 w-5 mt-1 text-red-500 flex-shrink-0" />
+                                        <p>
+                                            <span className="font-semibold">Perangkat Mobile:</span> Pembukaan PDF langsung di aplikasi ini 
+                                            tidak didukung karena keterbatasan browser mobile dan memori perangkat. 
+                                            Silakan gunakan opsi download untuk membuka dengan aplikasi PDF reader di perangkat Anda.
+                                        </p>
+                                    </div>
+                                    
+                                    <div className="flex items-start gap-3">
+                                        <Laptop className="h-5 w-5 mt-1 text-green-500 flex-shrink-0" />
+                                        <p>
+                                            <span className="font-semibold">Perangkat Desktop/Laptop:</span> Fitur buka PDF tersedia 
+                                            dan berfungsi dengan baik karena dukungan penuh dari browser desktop dan 
+                                            kemampuan memproses file yang lebih besar.
+                                        </p>
+                                    </div>
+                                </div>
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="flex justify-end gap-4 mt-6">
+                            <Button 
+                                variant="outline" 
+                                onClick={() => setIsPdfDialogOpen(false)}
+                                className="border-blue-200 dark:border-[#dd00ff]/30"
+                            >
+                                Tutup
+                            </Button>
+                            <Button
+                                onClick={() => window.open(route('mahasiswa.materi.download', materi.id), '_blank')}
+                                className="bg-gradient-to-r from-blue-600 to-blue-500 dark:from-[#b800e6] dark:via-[#dd00ff] dark:to-[#ff00ff]"
+                            >
+                                <Download className="mr-2 h-4 w-4" />
+                                Download PDF
+                            </Button>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+                
+                {/* Kontrol Musik */}
+                {!videoId && isMusicPlaying && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="fixed bottom-4 right-4 z-50 flex gap-2"
+                    >
+                        <motion.button
+                            whileTap={{ scale: 0.9 }}
+                            whileHover={{ scale: 1.1 }}
+                            onClick={toggleMusic} 
+                            className="rounded-full p-3 flex items-center justify-center bg-gradient-to-r from-blue-600 to-blue-500 dark:from-[#b800e6] dark:via-[#dd00ff] dark:to-[#ff00ff] shadow-lg"
+                        >
+                            <Pause className="h-5 w-5 text-white" />
+                        </motion.button>
+                    </motion.div>
+                )}
+                
+                {!videoId && !isMusicPlaying && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="fixed bottom-4 right-4 z-50"
+                    >
+                        <motion.button
+                            whileTap={{ scale: 0.9 }}
+                            whileHover={{ scale: 1.1 }}
+                            onClick={toggleMusic} 
+                            className="rounded-full shadow-lg p-3 flex items-center justify-center bg-blue-100 dark:bg-[#1a1a1a] border border-blue-200 dark:border-[#dd00ff]/30"
+                        >
+                            <PlayIcon className="h-5 w-5 text-blue-600 dark:text-[#dd00ff]" />
+                        </motion.button>
+                    </motion.div>
                 )}
                 
                 {/* Hero Section */}
@@ -291,7 +510,7 @@ export default function Play({ materi }: Props) {
                                 >
                                     <Button
                                         className="bg-gradient-to-r from-blue-600 to-blue-500 dark:from-[#b800e6] dark:to-[#dd00ff] hover:from-blue-700 hover:to-blue-600"
-                                        onClick={() => setShowPdf(!showPdf)}
+                                        onClick={handlePdfButtonClick}
                                     >
                                         <FileText className="h-4 w-4 mr-2" />
                                         {showPdf ? 'Tutup PDF' : 'Buka PDF'}

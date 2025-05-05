@@ -285,23 +285,41 @@ export default function Login({ status }: LoginProps) {
             
             {/* Dialog CAPTCHA dengan tema gelap */}
             <Dialog open={captchaDialogOpen} onOpenChange={setCaptchaDialogOpen}>
-                <DialogContent className="sm:max-w-md dark:bg-[#1a1a1a] dark:border-[#dd00ff]/20">
-                    <DialogHeader>
-                        <DialogTitle className="dark:text-white">Verifikasi Keamanan</DialogTitle>
-                        <DialogDescription className="dark:text-[#dd00ff]/80">
-                            Silakan jawab pertanyaan matematika berikut untuk melanjutkan.
-                        </DialogDescription>
-                    </DialogHeader>
+                <DialogContent className="sm:max-w-md bg-white dark:bg-[#1a1a1a]/95 border-0 shadow-xl rounded-2xl dark:border-[#dd00ff]/20 backdrop-blur-sm overflow-hidden">
+                    <div className="bg-gradient-to-r from-blue-600 to-indigo-700 dark:from-[#b800e6] dark:via-[#dd00ff] dark:to-[#ff00ff] p-5 -m-6 mb-4">
+                        <DialogHeader className="relative z-10">
+                            <DialogTitle className="text-white text-xl font-bold flex items-center">
+                                <div className="bg-white/20 dark:bg-white/10 p-2 rounded-full mr-3">
+                                    <Calculator className="h-5 w-5 text-white" />
+                                </div>
+                                Verifikasi Keamanan
+                            </DialogTitle>
+                            <DialogDescription className="text-blue-100 dark:text-[#ffccff] mt-1">
+                                Silakan jawab pertanyaan matematika berikut untuk memastikan kamu bukan robot.
+                            </DialogDescription>
+                        </DialogHeader>
+                        
+                        {/* Elemen dekoratif */}
+                        <div className="absolute top-0 left-0 w-full h-full">
+                            <div className="absolute -top-10 -left-10 w-40 h-40 bg-blue-400 dark:bg-[#ff00ff] opacity-20 rounded-full"></div>
+                            <div className="absolute top-20 -right-10 w-32 h-32 bg-indigo-400 dark:bg-[#dd00ff] opacity-20 rounded-full"></div>
+                        </div>
+                    </div>
                     
-                    <div className="flex flex-col space-y-4 py-4">
-                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                            <div className="flex items-center justify-center text-xl font-medium text-gray-800">
-                                {captcha.num1} + {captcha.num2} = ?
+                    <div className="flex flex-col space-y-5 py-4 px-1">
+                        <div className="bg-blue-50 dark:bg-[#2a1a2a] p-5 rounded-xl border border-blue-100 dark:border-[#dd00ff]/20 shadow-inner flex flex-col items-center transform transition-all hover:scale-[1.02] duration-300">
+                            <p className="text-gray-500 dark:text-gray-400 text-sm mb-2">Berapakah hasil dari</p>
+                            <div className="flex items-center justify-center text-2xl font-bold text-indigo-700 dark:text-[#ff00ff]">
+                                <span className="bg-white dark:bg-[#1a1a1a] px-3 py-1 rounded-lg shadow mr-3">{captcha.num1}</span>
+                                <span>+</span>
+                                <span className="bg-white dark:bg-[#1a1a1a] px-3 py-1 rounded-lg shadow mx-3">{captcha.num2}</span>
+                                <span>=</span>
+                                <span className="bg-white dark:bg-[#1a1a1a] px-3 py-1 rounded-lg shadow ml-3 border-2 border-dashed border-indigo-300 dark:border-[#dd00ff]/40">?</span>
                             </div>
                         </div>
                         
-                        <div className="relative">
-                            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                        <div className="relative mt-2 group">
+                            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 dark:group-focus-within:text-[#ff00ff] transition-colors duration-200">
                                 <Calculator className="h-5 w-5" />
                             </div>
                             <Input
@@ -309,20 +327,29 @@ export default function Login({ status }: LoginProps) {
                                 value={captchaAnswer}
                                 onChange={(e) => setCaptchaAnswer(e.target.value)}
                                 placeholder="Masukkan jawaban Anda"
-                                className="pl-10"
+                                className="pl-10 py-6 bg-white dark:bg-[#1a1a1a] border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 dark:focus:ring-[#dd00ff] transition-all duration-300"
                             />
                         </div>
                         
                         {captchaError && (
-                            <p className="text-red-500 text-sm">{captchaError}</p>
+                            <div className="flex items-center p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 text-red-600 dark:text-red-400 rounded-lg text-sm animate-pulse">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                {captchaError}
+                            </div>
                         )}
                     </div>
                     
-                    <DialogFooter className="flex space-x-2 sm:space-x-0">
-                        <Button variant="outline" onClick={generateCaptcha}>
-                            Ganti Soal
-                        </Button>
-                        <Button type="submit" onClick={submitCaptcha}>
+                    <DialogFooter className="flex flex-col sm:flex-row gap-3">
+                        <Button 
+                            type="submit" 
+                            onClick={submitCaptcha}
+                            className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-700 dark:from-[#b800e6] dark:via-[#dd00ff] dark:to-[#ff00ff] hover:from-blue-700 hover:to-indigo-800 dark:hover:from-[#a500cc] dark:hover:via-[#c700e6] dark:hover:to-[#e600e6] text-white transition-all duration-300 transform hover:-translate-y-0.5"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
                             Verifikasi
                         </Button>
                     </DialogFooter>
